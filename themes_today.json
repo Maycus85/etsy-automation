@@ -1,18 +1,6 @@
 {
-  "seed_themes": [
-    "watercolor babies and newborns",
-    "watercolor birthday celebration",
-    "watercolor wedding elements",
-    "watercolor dogs",
-    "watercolor cats",
-    "watercolor sea animals",
-    "watercolor fruits",
-    "watercolor bread and pastries",
-    "watercolor cakes and desserts",
-    "watercolor kitchen utensils",
-    "watercolor household items"
-  ],
-  "generated_history": [
+  "date": "2026-07-07",
+  "themes": [
     "watercolor newborn animals dressed as babies in onesies and swaddles",
     "kawaii birthday cakes and desserts with cute faces and party hats",
     "watercolor wedding cats in bride and groom outfits with floral accessories",
@@ -23,6 +11,5 @@
     "kawaii cozy rainy day items including rainboots umbrellas puddles and frogs",
     "watercolor enchanted forest fairy tale cottages with glowing windows and ivy",
     "kawaii Japanese snacks and convenience store foods with smiling faces"
-  ],
-  "last_updated": "2026-07-07"
+  ]
 }
