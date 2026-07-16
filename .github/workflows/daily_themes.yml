@@ -1,4 +1,4 @@
-name: Daily Theme Generation
+name: Daily Clipart Pipeline
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate-themes:
+  generate-themes-and-images:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -18,17 +18,23 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install anthropic
+        run: pip install anthropic requests
 
-      - name: Run theme generation
+      - name: Generate themes
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python generate_themes.py
 
-      - name: Commit and push updated themes
+      - name: Generate images
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
+        run: python generate_images.py
+
+      - name: Commit and push results
         run: |
           git config user.name "etsy-bot"
           git config user.email "bot@etsy-automation"
-          git add themes.json themes_today.json
-          git commit -m "Daily themes: $(date +'%Y-%m-%d')"
+          git add themes.json themes_today.json images/
+          git commit -m "Daily pipeline: $(date +'%Y-%m-%d')"
           git push
