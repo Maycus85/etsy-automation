@@ -130,7 +130,7 @@ def main():
     with open(output_dir / "log.json", "w") as f:
         json.dump(log, f, indent=2, ensure_ascii=False)
 
-    print(f"\nDone. {success_count}/{ITEMS_PER_THEME} images saved to {output_dir}")
+print(f"\nDone. {success_count}/{TARGET_IMAGES} images saved to {output_dir}")
 
 
 if __name__ == "__main__":
