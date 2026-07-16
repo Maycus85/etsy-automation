@@ -16,7 +16,7 @@ HEADERS = {
 
 STYLE_SUFFIX = ", kawaii watercolor style, soft pastel colors, cute illustration, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
 
-ITEMS_PER_THEME = 3  # Start with 3 for testing, increase to 20 later
+TARGET_IMAGES = 20  # Total images we want per theme
 
 
 def build_item_prompts(theme: str, n: int) -> list:
@@ -54,8 +54,10 @@ def generate_image(prompt: str, output_path: Path) -> bool:
             headers=HEADERS,
             json={
                 "prompt": prompt,
-                "image_size": "square_hd",
+                "aspect_ratio": "1:1",
+                "resolution": "2K",
                 "num_images": 1,
+                "output_format": "png",
             },
             timeout=120
         )
@@ -89,20 +91,30 @@ def main():
     output_dir = Path(f"images/{today}/{safe_name}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Generate item prompts
-    print(f"Generating {ITEMS_PER_THEME} item prompts...")
-    items = build_item_prompts(theme, ITEMS_PER_THEME)
+    # Check how many images already exist
+    existing = list(output_dir.glob("*.png"))
+    existing_count = len(existing)
+    remaining = TARGET_IMAGES - existing_count
+    print(f"  Existing images: {existing_count}, need {remaining} more to reach {TARGET_IMAGES}")
+
+    if remaining <= 0:
+        print("  Already at target, nothing to generate.")
+        return safe_name, []
+
+    # Generate item prompts for remaining images
+    print(f"Generating {remaining} item prompts...")
+    items = build_item_prompts(theme, remaining)
     print(f"Items: {items}")
 
     # Generate images
-    print(f"Generating {ITEMS_PER_THEME} images...")
+    print(f"Generating {remaining} images...")
     success_count = 0
     for i, item in enumerate(items):
-        output_path = output_dir / f"{i+1:02d}.png"
+        output_path = output_dir / f"{existing_count + i + 1:02d}.png"
         prompt = f"A single cute illustration of {item}{STYLE_SUFFIX}"
         success = generate_image(prompt, output_path)
         status = "OK" if success else "FAILED"
-        print(f"  [{i+1}/{ITEMS_PER_THEME}] {status}: {item}")
+        print(f"  [{existing_count + i + 1}/{TARGET_IMAGES}] {status}: {item}")
         if success:
             success_count += 1
         time.sleep(1)
