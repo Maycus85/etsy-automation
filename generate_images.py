@@ -16,7 +16,7 @@ HEADERS = {
 
 STYLE_SUFFIX = ", kawaii watercolor style, soft pastel colors, cute illustration, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
 
-TARGET_IMAGES = 1  # Total images we want per theme
+TARGET_IMAGES = 20  # Total images we want per theme
 
 
 def build_item_prompts(theme: str, n: int) -> list:
