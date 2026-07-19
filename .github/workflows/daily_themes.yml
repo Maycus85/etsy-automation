@@ -18,7 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install anthropic requests
+        run: pip install anthropic requests reportlab Pillow
 
       - name: Generate themes
         env:
