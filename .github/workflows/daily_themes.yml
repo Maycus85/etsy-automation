@@ -26,10 +26,10 @@ jobs:
         run: python generate_themes.py
 
       - name: Generate images
+        - name: Create PDF
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
-        run: python generate_images.py
+        run: python create_pdf.py
 
       - name: Commit and push results
         run: |
