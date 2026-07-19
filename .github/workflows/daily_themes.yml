@@ -36,6 +36,9 @@ jobs:
           DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
         run: python create_pdf.py
 
+      - name: Create Preview
+        run: python create_preview.py
+
       - name: Commit and push results
         run: |
           git config user.name "etsy-bot"
