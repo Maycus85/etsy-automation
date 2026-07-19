@@ -8,11 +8,13 @@ with open("themes.json", "r") as f:
     data = json.load(f)
 
 seed_themes = data["seed_themes"]
+always_clean = data.get("always_clean_themes", [])
 history = data.get("generated_history", [])
-runs_since_kawaii = data.get("runs_since_kawaii", 5)  # Start with kawaii on first run
+runs_since_kawaii = data.get("runs_since_kawaii", 5)
 
 # Determine theme type for today
 # Every 6th run is kawaii, rest is clean watercolor
+# But always_clean_themes override kawaii runs
 if runs_since_kawaii >= 5:
     theme_type = "kawaii"
     theme_type_instruction = """Today generate a KAWAII CHARACTER theme.
@@ -51,6 +53,8 @@ Objects, food, plants, or decor MUST be the PRIMARY subject."""
 # Build context
 recent_text = "\n".join(f"- {t}" for t in history) if history else "None yet."
 seed_text = "\n".join(f"- {t}" for t in seed_themes)
+
+always_clean_text = ", ".join(always_clean[:20])  # Show first 20 as examples
 
 prompt = f"""You are a creative director for an Etsy shop selling watercolor clipart PNG bundles.
 

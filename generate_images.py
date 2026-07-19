@@ -118,8 +118,17 @@ def main():
     theme_type = data.get("theme_type", "clean")
     print(f"Generating images for theme: {theme}")
 
-    # Use style from theme_type
-    if theme_type == "kawaii":
+    # Check always_clean_themes override
+    with open("themes.json", "r") as f:
+        themes_data = json.load(f)
+    always_clean = themes_data.get("always_clean_themes", [])
+    theme_lower = theme.lower()
+    is_always_clean = any(keyword in theme_lower for keyword in always_clean)
+
+    if is_always_clean:
+        style_name, style_suffix = "clean", CLEAN_STYLE
+        print(f"  Style: Clean Watercolor (forced by always_clean_themes)")
+    elif theme_type == "kawaii":
         style_name, style_suffix = "kawaii", KAWAII_STYLE
         print(f"  Style: Kawaii (from theme_type)")
     else:
