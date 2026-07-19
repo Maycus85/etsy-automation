@@ -42,6 +42,8 @@ jobs:
         run: python create_pdf.py
 
       - name: Create Preview
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python create_preview.py
 
       - name: Commit and push results
