@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install anthropic requests reportlab Pillow dropbox rembg onnxruntime
+          pip install anthropic requests reportlab Pillow dropbox
           sudo apt-get install -y fonts-liberation fonts-dejavu
 
       - name: Generate themes
@@ -32,9 +32,6 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
         run: python generate_images.py
-
-      - name: Remove backgrounds
-        run: python remove_backgrounds.py
 
       - name: Create PDF
         env:
