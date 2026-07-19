@@ -32,6 +32,8 @@ jobs:
         run: python generate_images.py
 
       - name: Create PDF
+        env:
+          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
         run: python create_pdf.py
 
       - name: Commit and push results
