@@ -16,48 +16,68 @@ FOOTER_AREA = 130
 PADDING = 60
 
 
-def download_font(url, path):
-    try:
-        urllib.request.urlretrieve(url, str(path))
-        return True
-    except:
-        return False
-
-
 def get_fonts():
-    font_dir = Path("/tmp/fonts")
-    font_dir.mkdir(exist_ok=True)
-    bold_path = font_dir / "Playfair-Bold.ttf"
-    regular_path = font_dir / "Lato-Regular.ttf"
+    # Try system fonts first
+    font_paths = [
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+    ]
+    regular_paths = [
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+    ]
 
-    if not bold_path.exists():
-        download_font(
-            "https://github.com/google/fonts/raw/main/ofl/playfairdisplay/PlayfairDisplay-Bold.ttf",
-            bold_path
-        )
-    if not regular_path.exists():
-        download_font(
-            "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf",
-            regular_path
-        )
+    bold_font = None
+    regular_font = None
 
-    try:
+    for path in font_paths:
+        if Path(path).exists():
+            bold_font = path
+            break
+
+    for path in regular_paths:
+        if Path(path).exists():
+            regular_font = path
+            break
+
+    if bold_font and regular_font:
+        print(f"  Using system fonts: {bold_font}")
         return (
-            ImageFont.truetype(str(bold_path), 280),    # title
-            ImageFont.truetype(str(regular_path), 160), # subtitle
-            ImageFont.truetype(str(regular_path), 110), # footer
-            ImageFont.truetype(str(bold_path), 130),    # badge
+            ImageFont.truetype(bold_font, 280),
+            ImageFont.truetype(regular_font, 160),
+            ImageFont.truetype(regular_font, 110),
+            ImageFont.truetype(bold_font, 130),
         )
-    except:
+    else:
+        print("  WARNING: No system fonts found, using default (will be small)")
         f = ImageFont.load_default()
         return f, f, f, f
 
 
+def remove_white_background(img, threshold=240):
+    """Remove white and near-white background from image."""
+    img = img.convert("RGBA")
+    data = img.getdata()
+    new_data = []
+    for r, g, b, a in data:
+        if r >= threshold and g >= threshold and b >= threshold:
+            new_data.append((r, g, b, 0))  # Make transparent
+        else:
+            new_data.append((r, g, b, a))
+    img.putdata(new_data)
+    return img
+
+
 def paste_image_on_bg(canvas, img_path, x, y, w, h, bg_color):
-    """Paste image directly onto background color, no white box."""
+    """Remove white background and paste image onto canvas background color."""
     img = Image.open(img_path).convert("RGBA")
 
-    # Create backing with same color as canvas background
+    # Remove white background
+    img = remove_white_background(img)
+
+    # Create backing with canvas background color
     backing = Image.new("RGBA", img.size, bg_color + (255,))
     backing.paste(img, mask=img.split()[3])
     img_rgb = backing.convert("RGB")
