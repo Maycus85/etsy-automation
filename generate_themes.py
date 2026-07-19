@@ -15,15 +15,37 @@ runs_since_kawaii = data.get("runs_since_kawaii", 5)  # Start with kawaii on fir
 # Every 6th run is kawaii, rest is clean watercolor
 if runs_since_kawaii >= 5:
     theme_type = "kawaii"
-    theme_type_instruction = """Today generate a KAWAII theme - featuring cute animals, fantasy creatures, 
-or characters with personality. Examples: "kawaii watercolor cats dressed as wizards", 
-"watercolor puppies sleeping in flower pots", "kawaii dragons having a tea party" """
+    theme_type_instruction = """Today generate a KAWAII CHARACTER theme.
+
+IMPORTANT: The main subjects MUST be living creatures like animals, fantasy beings, or characters.
+ALL 20 images in this pack will have cute faces - so the theme must support this consistently.
+
+Good examples:
+- "kawaii watercolor cats dressed as wizards"
+- "watercolor puppies sleeping in flower pots"
+- "kawaii forest animals having a picnic"
+- "watercolor baby dragons in teacups"
+- "kawaii bunnies baking cupcakes"
+
+Do NOT use objects as the main subject (no kawaii kitchen tools, kawaii fruit etc).
+Animals, fantasy creatures, or characters MUST be the PRIMARY subject."""
     runs_since_kawaii = 0
 else:
     theme_type = "clean"
-    theme_type_instruction = """Today generate a CLEAN WATERCOLOR theme - featuring objects, food, plants, 
-or items WITHOUT characters or animals. Examples: "watercolor kitchen utensils collection", 
-"watercolor wedding flowers and ribbons", "watercolor tropical fruits arrangement" """
+    theme_type_instruction = """Today generate a CLEAN WATERCOLOR theme.
+
+IMPORTANT: The main subjects MUST be objects, food, plants, or items - NOT animals or characters.
+ALL 20 images will have NO faces - pure watercolor illustration style.
+
+Good examples:
+- "watercolor kitchen utensils collection"
+- "watercolor wedding flowers and ribbons"
+- "watercolor tropical fruits arrangement"
+- "watercolor cozy autumn home decor"
+- "watercolor bakery pastries and breads"
+
+Do NOT use animals or characters as the main subject.
+Objects, food, plants, or decor MUST be the PRIMARY subject."""
     runs_since_kawaii += 1
 
 # Build context
