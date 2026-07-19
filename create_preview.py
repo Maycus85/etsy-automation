@@ -1,6 +1,5 @@
 import json
 import math
-import urllib.request
 from datetime import date
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -10,83 +9,41 @@ BG_COLOR = (255, 253, 248)
 ACCENT_COLOR = (196, 158, 120)
 FONT_COLOR = (55, 45, 40)
 SUBTITLE_COLOR = (120, 100, 88)
-FOOTER_COLOR = (160, 140, 128)
-TITLE_AREA = 480
-FOOTER_AREA = 130
-PADDING = 60
+TITLE_AREA = 320
+PADDING = 80
 
 
 def get_fonts():
-    # Try system fonts first
-    font_paths = [
+    bold_paths = [
         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
     ]
     regular_paths = [
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
     ]
 
-    bold_font = None
-    regular_font = None
-
-    for path in font_paths:
-        if Path(path).exists():
-            bold_font = path
-            break
-
-    for path in regular_paths:
-        if Path(path).exists():
-            regular_font = path
-            break
+    bold_font = next((p for p in bold_paths if Path(p).exists()), None)
+    regular_font = next((p for p in regular_paths if Path(p).exists()), None)
 
     if bold_font and regular_font:
-        print(f"  Using system fonts: {bold_font}")
         return (
-            ImageFont.truetype(bold_font, 280),
-            ImageFont.truetype(regular_font, 160),
-            ImageFont.truetype(regular_font, 110),
-            ImageFont.truetype(bold_font, 130),
+            ImageFont.truetype(bold_font, 120),   # title
+            ImageFont.truetype(regular_font, 70),  # subtitle
+            ImageFont.truetype(bold_font, 75),     # badge
         )
     else:
-        print("  WARNING: No system fonts found, using default (will be small)")
         f = ImageFont.load_default()
-        return f, f, f, f
+        return f, f, f
 
 
-def remove_white_background(img, threshold=240):
-    """Remove white and near-white background from image."""
-    img = img.convert("RGBA")
-    data = img.getdata()
-    new_data = []
-    for r, g, b, a in data:
-        if r >= threshold and g >= threshold and b >= threshold:
-            new_data.append((r, g, b, 0))  # Make transparent
-        else:
-            new_data.append((r, g, b, a))
-    img.putdata(new_data)
-    return img
-
-
-def paste_image_on_bg(canvas, img_path, x, y, w, h, bg_color):
-    """Remove white background and paste image onto canvas background color."""
+def paste_image_on_bg(canvas, img_path, x, y, w, h):
     img = Image.open(img_path).convert("RGBA")
-
-    # Remove white background
-    img = remove_white_background(img)
-
-    # Create backing with canvas background color
-    backing = Image.new("RGBA", img.size, bg_color + (255,))
-    backing.paste(img, mask=img.split()[3])
-    img_rgb = backing.convert("RGB")
-
-    # Resize to fit cell
-    pad = 20
+    bg = Image.new("RGBA", img.size, BG_COLOR + (255,))
+    bg.paste(img, mask=img.split()[3])
+    img_rgb = bg.convert("RGB")
+    pad = 30
     img_rgb.thumbnail((w - pad * 2, h - pad * 2), Image.LANCZOS)
-
-    # Center in cell
     ox = x + (w - img_rgb.width) // 2
     oy = y + (h - img_rgb.height) // 2
     canvas.paste(img_rgb, (ox, oy))
@@ -104,19 +61,17 @@ def create_preview(image_dir, output_path, theme, image_count):
     rows = math.ceil(n / cols)
 
     grid_y_start = TITLE_AREA
-    grid_y_end = PREVIEW_SIZE - FOOTER_AREA
-    grid_h = grid_y_end - grid_y_start
+    grid_h = PREVIEW_SIZE - TITLE_AREA - PADDING
     grid_w = PREVIEW_SIZE - PADDING * 2
-
     cell_w = grid_w // cols
     cell_h = grid_h // rows
 
     canvas = Image.new("RGB", (PREVIEW_SIZE, PREVIEW_SIZE), BG_COLOR)
     draw = ImageDraw.Draw(canvas)
 
-    # Top and bottom accent bars
-    draw.rectangle([(0, 0), (PREVIEW_SIZE, 12)], fill=ACCENT_COLOR)
-    draw.rectangle([(0, PREVIEW_SIZE - 12), (PREVIEW_SIZE, PREVIEW_SIZE)], fill=ACCENT_COLOR)
+    # Accent bars
+    draw.rectangle([(0, 0), (PREVIEW_SIZE, 10)], fill=ACCENT_COLOR)
+    draw.rectangle([(0, PREVIEW_SIZE - 10), (PREVIEW_SIZE, PREVIEW_SIZE)], fill=ACCENT_COLOR)
 
     # Place images
     for i, img_path in enumerate(images):
@@ -124,66 +79,37 @@ def create_preview(image_dir, output_path, theme, image_count):
         col = i % cols
         x = PADDING + col * cell_w
         y = grid_y_start + row * cell_h
-        paste_image_on_bg(canvas, img_path, x, y, cell_w, cell_h, BG_COLOR)
+        paste_image_on_bg(canvas, img_path, x, y, cell_w, cell_h)
 
-    # Fonts
-    font_title, font_subtitle, font_footer, font_badge = get_fonts()
+    font_title, font_subtitle, font_badge = get_fonts()
 
-    # PNG count badge top left
-    badge_w, badge_h = 420, 160
-    badge_x, badge_y = PADDING, 30
-    draw.rounded_rectangle(
-        [(badge_x, badge_y), (badge_x + badge_w, badge_y + badge_h)],
-        radius=36, fill=ACCENT_COLOR
-    )
-    draw.text(
-        (badge_x + badge_w // 2, badge_y + badge_h // 2),
-        f"{image_count} PNG",
-        font=font_badge, fill=(255, 255, 255), anchor="mm"
-    )
+    # PNG badge top left - fits within PADDING
+    badge_h = 100
+    badge_w = 240
+    bx, by = PADDING, 30
+    draw.rounded_rectangle([(bx, by), (bx + badge_w, by + badge_h)], radius=20, fill=ACCENT_COLOR)
+    draw.text((bx + badge_w // 2, by + badge_h // 2), f"{image_count} PNG", font=font_badge, fill=(255, 255, 255), anchor="mm")
 
     # Transparent badge top right
-    tbadge_w = 560
-    tbadge_x = PREVIEW_SIZE - PADDING - tbadge_w
-    draw.rounded_rectangle(
-        [(tbadge_x, badge_y), (tbadge_x + tbadge_w, badge_y + badge_h)],
-        radius=36, fill=(180, 165, 150)
-    )
-    draw.text(
-        (tbadge_x + tbadge_w // 2, badge_y + badge_h // 2),
-        "Transparent PNG",
-        font=font_badge, fill=(255, 255, 255), anchor="mm"
-    )
+    tbw = 380
+    tbx = PREVIEW_SIZE - PADDING - tbw
+    draw.rounded_rectangle([(tbx, by), (tbx + tbw, by + badge_h)], radius=20, fill=(175, 160, 145))
+    draw.text((tbx + tbw // 2, by + badge_h // 2), "Transparent PNG", font=font_badge, fill=(255, 255, 255), anchor="mm")
 
-    # Title
+    # Title - truncate smartly to max width
     title_clean = theme.replace("watercolor", "").replace("kawaii", "").strip().title()
-    if len(title_clean) > 35:
-        title_clean = title_clean[:35] + "..."
-    draw.text(
-        (PREVIEW_SIZE // 2, 270),
-        title_clean,
-        font=font_title, fill=FONT_COLOR, anchor="mm"
-    )
+    # Measure and truncate if needed
+    max_title_width = PREVIEW_SIZE - PADDING * 4
+    while draw.textlength(title_clean, font=font_title) > max_title_width and len(title_clean) > 10:
+        title_clean = title_clean.rsplit(" ", 1)[0] + "..."
+
+    draw.text((PREVIEW_SIZE // 2, 185), title_clean, font=font_title, fill=FONT_COLOR, anchor="mm")
 
     # Subtitle
-    draw.text(
-        (PREVIEW_SIZE // 2, 390),
-        "Watercolor Clipart Bundle",
-        font=font_subtitle, fill=SUBTITLE_COLOR, anchor="mm"
-    )
+    draw.text((PREVIEW_SIZE // 2, 265), "Watercolor Clipart Bundle", font=font_subtitle, fill=SUBTITLE_COLOR, anchor="mm")
 
-    # Separator line
-    draw.line(
-        [(PADDING * 2, 445), (PREVIEW_SIZE - PADDING * 2, 445)],
-        fill=ACCENT_COLOR, width=5
-    )
-
-    # Footer text
-    draw.text(
-        (PREVIEW_SIZE // 2, PREVIEW_SIZE - 60),
-        "Commercial Use  •  Instant Download  •  300 DPI",
-        font=font_footer, fill=FOOTER_COLOR, anchor="mm"
-    )
+    # Separator
+    draw.line([(PADDING * 2, 298), (PREVIEW_SIZE - PADDING * 2, 298)], fill=ACCENT_COLOR, width=3)
 
     canvas.save(str(output_path), "PNG", optimize=True)
     print(f"  Preview saved: {output_path}")
