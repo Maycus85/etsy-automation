@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import time
 import requests
 from datetime import date
@@ -14,13 +15,43 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-STYLE_SUFFIX = ", kawaii watercolor style, soft pastel colors, cute illustration, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
+TARGET_IMAGES = 2  # Set to 20 for production
 
-TARGET_IMAGES = 2  # Total images we want per theme
+# Stil A: Kawaii mit Gesichtern - für Tiere, Fantasy, Charaktere
+KAWAII_STYLE = ", kawaii chibi style, cute friendly face, soft pastel watercolor, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
+
+# Stil B: Watercolor Clean ohne Gesichter - für Küche, Hochzeit, Blumen, Essen
+CLEAN_STYLE = ", watercolor illustration style, no faces, no eyes, no expressions, soft pastel colors, delicate brushstrokes, botanical art style, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
+
+# Keywords die Stil A (Kawaii mit Gesichtern) triggern
+KAWAII_KEYWORDS = [
+    "animal", "animals", "cat", "cats", "dog", "dogs", "puppy", "kitten",
+    "dragon", "dragons", "witch", "elf", "elves", "fairy", "fairies",
+    "baby", "babies", "newborn", "character", "monster", "bear", "bunny",
+    "rabbit", "fox", "deer", "owl", "bird", "penguin", "unicorn",
+    "fantasy", "kawaii", "chibi", "creature", "pet", "frog", "fish",
+    "sea animal", "woodland", "forest animal", "dinosaur", "panda"
+]
 
 
-def build_item_prompts(theme: str, n: int) -> list:
+def detect_style(theme: str) -> tuple:
+    """Detect which style to use based on theme keywords."""
+    theme_lower = theme.lower()
+    for keyword in KAWAII_KEYWORDS:
+        if keyword in theme_lower:
+            print(f"  Style: Kawaii (triggered by '{keyword}')")
+            return "kawaii", KAWAII_STYLE
+    print(f"  Style: Clean Watercolor (no character keywords found)")
+    return "clean", CLEAN_STYLE
+
+
+def build_item_prompts(theme: str, n: int, style: str) -> list:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+
+    if style == "kawaii":
+        style_hint = "kawaii cute characters with friendly expressions"
+    else:
+        style_hint = "clean watercolor objects without faces or expressions"
 
     message = client.messages.create(
         model="claude-sonnet-4-6",
@@ -29,11 +60,13 @@ def build_item_prompts(theme: str, n: int) -> list:
             "role": "user",
             "content": f"""Generate exactly {n} distinct clipart item descriptions for the theme: "{theme}"
 
+Style: {style_hint}
+
 Rules:
 - Each item is one specific object or character
 - Keep each description under 8 words
 - No duplicates
-- Suitable for kawaii watercolor clipart
+- Suitable for watercolor clipart illustration
 
 Respond ONLY with a JSON array of {n} strings.
 Example: ["cute birthday cake with candles", "pastel balloon bouquet"]"""
@@ -41,7 +74,6 @@ Example: ["cute birthday cake with candles", "pastel balloon bouquet"]"""
     )
 
     text = message.content[0].text.strip()
-    import re
     text = re.sub(r"```json\s*", "", text)
     text = re.sub(r"```\s*", "", text).strip()
     return json.loads(text)
@@ -79,39 +111,47 @@ def generate_image(prompt: str, output_path: Path) -> bool:
 def main():
     today = str(date.today())
 
-    # Load today's theme
     with open("themes_today.json", "r") as f:
         data = json.load(f)
 
     theme = data["theme"]
+    theme_type = data.get("theme_type", "clean")
     print(f"Generating images for theme: {theme}")
+
+    # Use style from theme_type
+    if theme_type == "kawaii":
+        style_name, style_suffix = "kawaii", KAWAII_STYLE
+        print(f"  Style: Kawaii (from theme_type)")
+    else:
+        style_name, style_suffix = "clean", CLEAN_STYLE
+        print(f"  Style: Clean Watercolor (from theme_type)")
 
     # Create output folder
     safe_name = theme.replace(" ", "_").replace("/", "_")[:50]
     output_dir = Path(f"images/{today}/{safe_name}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Check how many images already exist
+    # Check existing images
     existing = list(output_dir.glob("*.png"))
     existing_count = len(existing)
     remaining = TARGET_IMAGES - existing_count
-    print(f"  Existing images: {existing_count}, need {remaining} more to reach {TARGET_IMAGES}")
+    print(f"  Existing: {existing_count}, need {remaining} more to reach {TARGET_IMAGES}")
 
     if remaining <= 0:
         print("  Already at target, nothing to generate.")
-        return safe_name, []
+        return
 
-    # Generate item prompts for remaining images
+    # Generate item prompts
     print(f"Generating {remaining} item prompts...")
-    items = build_item_prompts(theme, remaining)
+    items = build_item_prompts(theme, remaining, style_name)
     print(f"Items: {items}")
 
     # Generate images
-    print(f"Generating {remaining} images...")
+    print(f"Generating {remaining} images ({style_name} style)...")
     success_count = 0
     for i, item in enumerate(items):
         output_path = output_dir / f"{existing_count + i + 1:02d}.png"
-        prompt = f"A single cute illustration of {item}{STYLE_SUFFIX}"
+        prompt = f"A single illustration of {item}{style_suffix}"
         success = generate_image(prompt, output_path)
         status = "OK" if success else "FAILED"
         print(f"  [{existing_count + i + 1}/{TARGET_IMAGES}] {status}: {item}")
@@ -123,6 +163,7 @@ def main():
     log = {
         "date": today,
         "theme": theme,
+        "style": style_name,
         "items": items,
         "images_generated": success_count,
         "output_dir": str(output_dir)
@@ -130,7 +171,7 @@ def main():
     with open(output_dir / "log.json", "w") as f:
         json.dump(log, f, indent=2, ensure_ascii=False)
 
-print(f"\nDone. {TARGET_IMAGES} images processed.")
+    print(f"\nDone. {success_count}/{TARGET_IMAGES} images saved to {output_dir}")
 
 
 if __name__ == "__main__":
