@@ -1,22 +1,24 @@
 import json
 import math
 import os
+import random
 import anthropic
 from datetime import date
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 PREVIEW_SIZE = 3000
-BG_COLOR = (255, 253, 248)
+BG_COLOR = (255, 255, 255)  # White background
 ACCENT_COLOR = (196, 158, 120)
 FONT_COLOR = (55, 45, 40)
 SUBTITLE_COLOR = (120, 100, 88)
 TITLE_AREA = 320
 PADDING = 80
 
+random.seed(42)  # Consistent randomness per run
+
 
 def generate_short_title(theme: str) -> str:
-    """Generate a clean 3-4 word title from the theme using Claude."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     message = client.messages.create(
         model="claude-sonnet-4-6",
@@ -27,10 +29,9 @@ def generate_short_title(theme: str) -> str:
 
 Rules:
 - Maximum 4 words
-- Do NOT use these words: Watercolor, Clipart, Bundle (they appear in the subtitle already)
-- Focus on the subject and style, examples: "Elegant Wedding Flowers", "Kawaii Forest Animals", "Cozy Kitchen Utensils", "Autumn Harvest Elements"
+- Do NOT use these words: Watercolor, Clipart, Bundle
+- Focus on the subject, examples: "Elegant Wedding Flowers", "Kawaii Forest Animals", "Cozy Kitchen Utensils"
 - No punctuation, no quotes
-- Descriptive and marketable
 
 Respond ONLY with the title, nothing else."""
         }]
@@ -47,10 +48,8 @@ def get_fonts():
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     ]
-
     bold_font = next((p for p in bold_paths if Path(p).exists()), None)
     regular_font = next((p for p in regular_paths if Path(p).exists()), None)
-
     if bold_font and regular_font:
         return (
             ImageFont.truetype(bold_font, 130),
@@ -60,16 +59,30 @@ def get_fonts():
     return f, f
 
 
-def paste_image_on_bg(canvas, img_path, x, y, w, h):
+def paste_image_artistic(canvas, img_path, center_x, center_y, size, rotation):
+    """Paste image with white background, rotation, and slight randomness."""
     img = Image.open(img_path).convert("RGBA")
-    bg = Image.new("RGBA", img.size, BG_COLOR + (255,))
+
+    # White background
+    bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
     bg.paste(img, mask=img.split()[3])
     img_rgb = bg.convert("RGB")
-    pad = 30
-    img_rgb.thumbnail((w - pad * 2, h - pad * 2), Image.LANCZOS)
-    ox = x + (w - img_rgb.width) // 2
-    oy = y + (h - img_rgb.height) // 2
-    canvas.paste(img_rgb, (ox, oy))
+
+    # Resize
+    img_rgb.thumbnail((size, size), Image.LANCZOS)
+
+    # Add small white padding around image so overlap looks clean
+    pad = 15
+    padded = Image.new("RGB", (img_rgb.width + pad*2, img_rgb.height + pad*2), (255, 255, 255))
+    padded.paste(img_rgb, (pad, pad))
+
+    # Rotate
+    rotated = padded.rotate(rotation, expand=True, fillcolor=(255, 255, 255))
+
+    # Paste centered at position
+    px = center_x - rotated.width // 2
+    py = center_y - rotated.height // 2
+    canvas.paste(rotated, (px, py))
 
 
 def create_preview(image_dir, output_path, short_title):
@@ -78,7 +91,7 @@ def create_preview(image_dir, output_path, short_title):
     if n == 0:
         return False
 
-    print(f"  Creating preview with {n} images, title: {short_title}")
+    print(f"  Creating artistic preview with {n} images, title: {short_title}")
 
     cols = math.ceil(math.sqrt(n))
     rows = math.ceil(n / cols)
@@ -89,6 +102,9 @@ def create_preview(image_dir, output_path, short_title):
     cell_w = grid_w // cols
     cell_h = grid_h // rows
 
+    # Base cell size for images
+    base_size = int(min(cell_w, cell_h) * 0.75)
+
     canvas = Image.new("RGB", (PREVIEW_SIZE, PREVIEW_SIZE), BG_COLOR)
     draw = ImageDraw.Draw(canvas)
 
@@ -96,29 +112,51 @@ def create_preview(image_dir, output_path, short_title):
     draw.rectangle([(0, 0), (PREVIEW_SIZE, 10)], fill=ACCENT_COLOR)
     draw.rectangle([(0, PREVIEW_SIZE - 10), (PREVIEW_SIZE, PREVIEW_SIZE)], fill=ACCENT_COLOR)
 
-    # Images
+    # Place images with artistic randomness
     for i, img_path in enumerate(images):
         row = i // cols
         col = i % cols
-        x = PADDING + col * cell_w
-        y = grid_y_start + row * cell_h
-        paste_image_on_bg(canvas, img_path, x, y, cell_w, cell_h)
 
+        # Cell center
+        cell_cx = PADDING + col * cell_w + cell_w // 2
+        cell_cy = grid_y_start + row * cell_h + cell_h // 2
+
+        # Random offset within cell (max 12% of cell size)
+        offset_x = random.randint(-int(cell_w * 0.12), int(cell_w * 0.12))
+        offset_y = random.randint(-int(cell_h * 0.12), int(cell_h * 0.12))
+
+        # Random size variation (85% to 110%)
+        size_factor = random.uniform(0.85, 1.10)
+        size = int(base_size * size_factor)
+
+        # Random rotation (-7 to +7 degrees)
+        rotation = random.uniform(-7, 7)
+
+        paste_image_artistic(
+            canvas,
+            img_path,
+            cell_cx + offset_x,
+            cell_cy + offset_y,
+            size,
+            rotation
+        )
+
+    # Fonts
     font_title, font_subtitle = get_fonts()
 
-    # Title centered, single line
+    # Title
     draw.text(
         (PREVIEW_SIZE // 2, 110),
-        short_title,
+        short_title.upper(),
         font=font_title,
         fill=FONT_COLOR,
         anchor="mm"
     )
 
-    # Subtitle - more space below title
+    # Subtitle
     draw.text(
         (PREVIEW_SIZE // 2, 230),
-        "Watercolor Clipart Bundle",
+        "WATERCOLOR CLIPART BUNDLE",
         font=font_subtitle,
         fill=SUBTITLE_COLOR,
         anchor="mm"
@@ -149,7 +187,6 @@ def main():
         print(f"Image directory not found: {image_dir}")
         return
 
-    # Generate short title
     print("  Generating short title...")
     short_title = generate_short_title(theme)
     print(f"  Short title: {short_title}")
