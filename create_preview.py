@@ -11,8 +11,8 @@ ACCENT_COLOR = (196, 158, 120)
 FONT_COLOR = (55, 45, 40)
 SUBTITLE_COLOR = (120, 100, 88)
 FOOTER_COLOR = (160, 140, 128)
-TITLE_AREA = 280
-FOOTER_AREA = 80
+TITLE_AREA = 480
+FOOTER_AREA = 130
 PADDING = 60
 
 
@@ -43,22 +43,22 @@ def get_fonts():
 
     try:
         return (
-            ImageFont.truetype(str(bold_path), 160),    # title
-            ImageFont.truetype(str(regular_path), 80),  # subtitle
-            ImageFont.truetype(str(regular_path), 60),  # footer
-            ImageFont.truetype(str(bold_path), 75),     # badge
+            ImageFont.truetype(str(bold_path), 280),    # title
+            ImageFont.truetype(str(regular_path), 160), # subtitle
+            ImageFont.truetype(str(regular_path), 110), # footer
+            ImageFont.truetype(str(bold_path), 130),    # badge
         )
     except:
         f = ImageFont.load_default()
         return f, f, f, f
 
 
-def paste_image_on_white(canvas, img_path, x, y, w, h):
-    """Paste image with white background to avoid transparency checkerboard."""
+def paste_image_on_bg(canvas, img_path, x, y, w, h, bg_color):
+    """Paste image directly onto background color, no white box."""
     img = Image.open(img_path).convert("RGBA")
 
-    # Create white backing
-    backing = Image.new("RGBA", img.size, (255, 255, 255, 255))
+    # Create backing with same color as canvas background
+    backing = Image.new("RGBA", img.size, bg_color + (255,))
     backing.paste(img, mask=img.split()[3])
     img_rgb = backing.convert("RGB")
 
@@ -104,17 +104,17 @@ def create_preview(image_dir, output_path, theme, image_count):
         col = i % cols
         x = PADDING + col * cell_w
         y = grid_y_start + row * cell_h
-        paste_image_on_white(canvas, img_path, x, y, cell_w, cell_h)
+        paste_image_on_bg(canvas, img_path, x, y, cell_w, cell_h, BG_COLOR)
 
     # Fonts
     font_title, font_subtitle, font_footer, font_badge = get_fonts()
 
     # PNG count badge top left
-    badge_w, badge_h = 260, 100
-    badge_x, badge_y = PADDING, 20
+    badge_w, badge_h = 420, 160
+    badge_x, badge_y = PADDING, 30
     draw.rounded_rectangle(
         [(badge_x, badge_y), (badge_x + badge_w, badge_y + badge_h)],
-        radius=24, fill=ACCENT_COLOR
+        radius=36, fill=ACCENT_COLOR
     )
     draw.text(
         (badge_x + badge_w // 2, badge_y + badge_h // 2),
@@ -123,11 +123,11 @@ def create_preview(image_dir, output_path, theme, image_count):
     )
 
     # Transparent badge top right
-    tbadge_w = 360
+    tbadge_w = 560
     tbadge_x = PREVIEW_SIZE - PADDING - tbadge_w
     draw.rounded_rectangle(
         [(tbadge_x, badge_y), (tbadge_x + tbadge_w, badge_y + badge_h)],
-        radius=24, fill=(180, 165, 150)
+        radius=36, fill=(180, 165, 150)
     )
     draw.text(
         (tbadge_x + tbadge_w // 2, badge_y + badge_h // 2),
@@ -137,30 +137,30 @@ def create_preview(image_dir, output_path, theme, image_count):
 
     # Title
     title_clean = theme.replace("watercolor", "").replace("kawaii", "").strip().title()
-    if len(title_clean) > 40:
-        title_clean = title_clean[:40] + "..."
+    if len(title_clean) > 35:
+        title_clean = title_clean[:35] + "..."
     draw.text(
-        (PREVIEW_SIZE // 2, 155),
+        (PREVIEW_SIZE // 2, 270),
         title_clean,
         font=font_title, fill=FONT_COLOR, anchor="mm"
     )
 
     # Subtitle
     draw.text(
-        (PREVIEW_SIZE // 2, 230),
+        (PREVIEW_SIZE // 2, 390),
         "Watercolor Clipart Bundle",
         font=font_subtitle, fill=SUBTITLE_COLOR, anchor="mm"
     )
 
     # Separator line
     draw.line(
-        [(PADDING * 2, 258), (PREVIEW_SIZE - PADDING * 2, 258)],
-        fill=ACCENT_COLOR, width=3
+        [(PADDING * 2, 445), (PREVIEW_SIZE - PADDING * 2, 445)],
+        fill=ACCENT_COLOR, width=5
     )
 
     # Footer text
     draw.text(
-        (PREVIEW_SIZE // 2, PREVIEW_SIZE - 40),
+        (PREVIEW_SIZE // 2, PREVIEW_SIZE - 60),
         "Commercial Use  •  Instant Download  •  300 DPI",
         font=font_footer, fill=FOOTER_COLOR, anchor="mm"
     )
