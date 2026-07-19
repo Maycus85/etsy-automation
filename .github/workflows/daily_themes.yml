@@ -38,6 +38,6 @@ jobs:
         run: |
           git config user.name "etsy-bot"
           git config user.email "bot@etsy-automation"
-          git add themes.json themes_today.json images/
+          git add themes.json themes_today.json images/ listing_today.json
           git commit -m "Daily pipeline: $(date +'%Y-%m-%d')"
           git push
