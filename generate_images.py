@@ -23,6 +23,9 @@ KAWAII_STYLE = ", kawaii chibi style, cute friendly face, soft pastel watercolor
 # Stil B: Watercolor Clean ohne Gesichter - für Küche, Hochzeit, Blumen, Essen
 CLEAN_STYLE = ", watercolor illustration style, no faces, no eyes, no expressions, soft pastel colors, delicate brushstrokes, botanical art style, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
 
+# Stil C: Silhouette - für Halloween, Drachen, Gothic
+SILHOUETTE_STYLE = ", pure black silhouette, flat solid black shape, no details, no gradients, no colors, crisp clean edges, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
+
 # Keywords die Stil A (Kawaii mit Gesichtern) triggern
 KAWAII_KEYWORDS = [
     "animal", "animals", "cat", "cats", "dog", "dogs", "puppy", "kitten",
@@ -125,7 +128,10 @@ def main():
     theme_lower = theme.lower()
     is_always_clean = any(keyword in theme_lower for keyword in always_clean)
 
-    if is_always_clean:
+    if theme_type == "silhouette":
+        style_name, style_suffix = "silhouette", SILHOUETTE_STYLE
+        print(f"  Style: Silhouette (from theme_type)")
+    elif is_always_clean:
         style_name, style_suffix = "clean", CLEAN_STYLE
         print(f"  Style: Clean Watercolor (forced by always_clean_themes)")
     elif theme_type == "kawaii":

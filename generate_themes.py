@@ -9,13 +9,36 @@ with open("themes.json", "r") as f:
 
 seed_themes = data["seed_themes"]
 always_clean = data.get("always_clean_themes", [])
+silhouette_themes = data.get("silhouette_themes", [])
 history = data.get("generated_history", [])
 runs_since_kawaii = data.get("runs_since_kawaii", 5)
+runs_since_silhouette = data.get("runs_since_silhouette", 9)
 
 # Determine theme type for today
-# Every 6th run is kawaii, rest is clean watercolor
-# But always_clean_themes override kawaii runs
-if runs_since_kawaii >= 5:
+# Priority: Silhouette (every 10th) > Kawaii (every 6th) > Clean Watercolor
+if runs_since_silhouette >= 9:
+    theme_type = "silhouette"
+    theme_type_instruction = """Today generate a SILHOUETTE theme.
+
+These are special black silhouette cliparts, perfect for Halloween, gothic, and dark fantasy themes.
+The style is pure black flat shapes on transparent background.
+
+ONLY use these categories for silhouettes:
+- Halloween: pumpkins, bats, ghosts, spiders, haunted houses, black cats, witches
+- Dragons and dark fantasy creatures
+- Gothic: ravens, skulls, candles, gravestones
+- Night sky: moons, stars, owls
+
+Good examples:
+- "Halloween silhouette pumpkins bats and haunted houses"
+- "gothic dragon silhouettes night sky"
+- "Halloween witch and ghost silhouettes"
+
+Keep it dark, spooky, or gothic. NO cute animals, NO food, NO flowers."""
+    runs_since_silhouette = 0
+    runs_since_kawaii += 1
+
+elif runs_since_kawaii >= 5:
     theme_type = "kawaii"
     theme_type_instruction = """Today generate a KAWAII CHARACTER theme.
 
@@ -32,6 +55,8 @@ Good examples:
 Do NOT use objects as the main subject (no kawaii kitchen tools, kawaii fruit etc).
 Animals, fantasy creatures, or characters MUST be the PRIMARY subject."""
     runs_since_kawaii = 0
+    runs_since_silhouette += 1
+
 else:
     theme_type = "clean"
     theme_type_instruction = """Today generate a CLEAN WATERCOLOR theme.
@@ -49,14 +74,13 @@ Good examples:
 Do NOT use animals or characters as the main subject.
 Objects, food, plants, or decor MUST be the PRIMARY subject."""
     runs_since_kawaii += 1
+    runs_since_silhouette += 1
 
 # Build context
 recent_text = "\n".join(f"- {t}" for t in history) if history else "None yet."
 seed_text = "\n".join(f"- {t}" for t in seed_themes)
 
-always_clean_text = ", ".join(always_clean[:20])  # Show first 20 as examples
-
-prompt = f"""You are a creative director for an Etsy shop selling watercolor clipart PNG bundles.
+prompt = f"""You are a creative director for an Etsy shop selling watercolor and silhouette clipart PNG bundles.
 
 Your task: Generate exactly 1 theme idea for today's clipart bundle.
 
@@ -91,13 +115,14 @@ message = client.messages.create(
 today_theme = message.content[0].text.strip().strip('"').strip("'")
 print(f"Today's theme ({theme_type}): {today_theme}")
 
-# Update history and counter
+# Update history and counters
 today = str(date.today())
 history.append(today_theme)
 
 data["generated_history"] = history
 data["last_updated"] = today
 data["runs_since_kawaii"] = runs_since_kawaii
+data["runs_since_silhouette"] = runs_since_silhouette
 
 with open("themes.json", "w") as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
