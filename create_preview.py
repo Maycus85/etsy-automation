@@ -85,10 +85,10 @@ def paste_image_artistic(canvas, img_path, center_x, center_y, size, rotation):
     """Paste image with white background, crop white border, rotation and slight randomness."""
     img = Image.open(img_path).convert("RGBA")
 
-    # White background composite
-    bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
+    # Always composite onto white background first
+    bg = Image.new("RGB", img.size, (255, 255, 255))
     bg.paste(img, mask=img.split()[3])
-    img_rgb = bg.convert("RGB")
+    img_rgb = bg
 
     # Crop white border so images sit close together
     img_rgb = crop_white_border(img_rgb)
