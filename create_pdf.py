@@ -40,7 +40,11 @@ def create_pdf(image_dir: Path, output_path: Path) -> bool:
 
 def upload_to_dropbox(local_path: Path, dropbox_path: str) -> str:
     """Upload PDF to Dropbox and return a shared link."""
-    dbx = dropbox.Dropbox(os.environ["DROPBOX_ACCESS_TOKEN"])
+    dbx = dropbox.Dropbox(
+    oauth2_refresh_token=os.environ["DROPBOX_REFRESH_TOKEN"],
+    app_key=os.environ["DROPBOX_APP_KEY"],
+    app_secret=os.environ["DROPBOX_APP_SECRET"]
+)
 
     print(f"  Uploading to Dropbox: {dropbox_path}")
     with open(local_path, "rb") as f:
