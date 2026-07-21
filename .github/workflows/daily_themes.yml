@@ -35,15 +35,15 @@ jobs:
 
       - name: Create PDF
         env:
-          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
-        run: python create_pdf.py
-
-      - name: Create PDF
-        env:
           DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
           DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
         run: python create_pdf.py
+
+      - name: Create Preview
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python create_preview.py
 
       - name: Commit and push results
         run: |
