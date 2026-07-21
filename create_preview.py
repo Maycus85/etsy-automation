@@ -2,6 +2,7 @@ import json
 import math
 import os
 import random
+import numpy as np
 import anthropic
 from datetime import date
 from pathlib import Path
@@ -59,27 +60,46 @@ def get_fonts():
     return f, f
 
 
+def crop_white_border(img, threshold=240):
+    """Remove white border around image using numpy for speed."""
+    img_rgb = img.convert("RGB")
+    arr = np.array(img_rgb)
+    # Find pixels that are NOT white
+    mask = np.any(arr < threshold, axis=2)
+    rows = np.any(mask, axis=1)
+    cols = np.any(mask, axis=0)
+    if not rows.any():
+        return img
+    rmin, rmax = np.where(rows)[0][[0, -1]]
+    cmin, cmax = np.where(cols)[0][[0, -1]]
+    # Add small padding
+    pad = 10
+    rmin = max(0, rmin - pad)
+    rmax = min(arr.shape[0], rmax + pad)
+    cmin = max(0, cmin - pad)
+    cmax = min(arr.shape[1], cmax + pad)
+    return img.crop((cmin, rmin, cmax, rmax))
+
+
 def paste_image_artistic(canvas, img_path, center_x, center_y, size, rotation):
-    """Paste image with white background, rotation, and slight randomness."""
+    """Paste image with white background, crop white border, rotation and slight randomness."""
     img = Image.open(img_path).convert("RGBA")
 
-    # White background
+    # White background composite
     bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
     bg.paste(img, mask=img.split()[3])
     img_rgb = bg.convert("RGB")
 
-    # Resize
+    # Crop white border so images sit close together
+    img_rgb = crop_white_border(img_rgb)
+
+    # Resize to target size
     img_rgb.thumbnail((size, size), Image.LANCZOS)
 
-    # Add small white padding around image so overlap looks clean
-    pad = 15
-    padded = Image.new("RGB", (img_rgb.width + pad*2, img_rgb.height + pad*2), (255, 255, 255))
-    padded.paste(img_rgb, (pad, pad))
-
     # Rotate
-    rotated = padded.rotate(rotation, expand=True, fillcolor=(255, 255, 255))
+    rotated = img_rgb.rotate(rotation, expand=True, fillcolor=(255, 255, 255))
 
-    # Paste centered at position
+    # Paste centered
     px = center_x - rotated.width // 2
     py = center_y - rotated.height // 2
     canvas.paste(rotated, (px, py))
