@@ -9,14 +9,14 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 PREVIEW_SIZE = 3000
-BG_COLOR = (255, 255, 255)  # White background
+BG_COLOR = (255, 255, 255)
 ACCENT_COLOR = (196, 158, 120)
 FONT_COLOR = (55, 45, 40)
 SUBTITLE_COLOR = (120, 100, 88)
 TITLE_AREA = 320
 PADDING = 80
 
-random.seed(42)  # Consistent randomness per run
+random.seed(42)
 
 
 def generate_short_title(theme: str) -> str:
@@ -61,10 +61,9 @@ def get_fonts():
 
 
 def crop_white_border(img, threshold=240):
-    """Remove white border around image using numpy for speed."""
+    """Remove white border around image using numpy."""
     img_rgb = img.convert("RGB")
     arr = np.array(img_rgb)
-    # Find pixels that are NOT white
     mask = np.any(arr < threshold, axis=2)
     rows = np.any(mask, axis=1)
     cols = np.any(mask, axis=0)
@@ -72,7 +71,6 @@ def crop_white_border(img, threshold=240):
         return img
     rmin, rmax = np.where(rows)[0][[0, -1]]
     cmin, cmax = np.where(cols)[0][[0, -1]]
-    # Add small padding
     pad = 10
     rmin = max(0, rmin - pad)
     rmax = min(arr.shape[0], rmax + pad)
@@ -82,18 +80,18 @@ def crop_white_border(img, threshold=240):
 
 
 def paste_image_artistic(canvas, img_path, center_x, center_y, size, rotation):
-    """Paste image with white background, crop white border, rotation and slight randomness."""
+    """Paste image with white background, crop white border, rotation."""
     img = Image.open(img_path).convert("RGBA")
 
-    # Always composite onto white background first
+    # Always composite onto white background
     bg = Image.new("RGB", img.size, (255, 255, 255))
     bg.paste(img, mask=img.split()[3])
     img_rgb = bg
 
-    # Crop white border so images sit close together
+    # Crop white border
     img_rgb = crop_white_border(img_rgb)
 
-    # Resize to target size
+    # Resize
     img_rgb.thumbnail((size, size), Image.LANCZOS)
 
     # Rotate
@@ -105,13 +103,29 @@ def paste_image_artistic(canvas, img_path, center_x, center_y, size, rotation):
     canvas.paste(rotated, (px, py))
 
 
+def apply_watermark(canvas):
+    """Apply watermark.png overlay onto the canvas if it exists."""
+    watermark_path = Path("watermark.png")
+    if not watermark_path.exists():
+        print("  No watermark.png found, skipping watermark.")
+        return canvas
+
+    watermark = Image.open(watermark_path).convert("RGBA")
+    watermark = watermark.resize((PREVIEW_SIZE, PREVIEW_SIZE), Image.LANCZOS)
+
+    # Composite watermark over canvas
+    canvas_rgba = canvas.convert("RGBA")
+    combined = Image.alpha_composite(canvas_rgba, watermark)
+    return combined.convert("RGB")
+
+
 def create_preview(image_dir, output_path, short_title):
     images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
     n = len(images)
     if n == 0:
         return False
 
-    print(f"  Creating artistic preview with {n} images, title: {short_title}")
+    print(f"  Creating preview with {n} images, title: {short_title}")
 
     cols = math.ceil(math.sqrt(n))
     rows = math.ceil(n / cols)
@@ -121,8 +135,6 @@ def create_preview(image_dir, output_path, short_title):
     grid_w = PREVIEW_SIZE - PADDING * 2
     cell_w = grid_w // cols
     cell_h = grid_h // rows
-
-    # Base cell size for images
     base_size = int(min(cell_w, cell_h) * 0.75)
 
     canvas = Image.new("RGB", (PREVIEW_SIZE, PREVIEW_SIZE), BG_COLOR)
@@ -137,28 +149,22 @@ def create_preview(image_dir, output_path, short_title):
         row = i // cols
         col = i % cols
 
-        # Cell center
         cell_cx = PADDING + col * cell_w + cell_w // 2
         cell_cy = grid_y_start + row * cell_h + cell_h // 2
 
-        # Random offset within cell (max 12% of cell size)
         offset_x = random.randint(-int(cell_w * 0.12), int(cell_w * 0.12))
         offset_y = random.randint(-int(cell_h * 0.12), int(cell_h * 0.12))
 
-        # Random size variation (85% to 110%)
         size_factor = random.uniform(0.85, 1.10)
         size = int(base_size * size_factor)
 
-        # Random rotation (-7 to +7 degrees)
         rotation = random.uniform(-7, 7)
 
         paste_image_artistic(
-            canvas,
-            img_path,
+            canvas, img_path,
             cell_cx + offset_x,
             cell_cy + offset_y,
-            size,
-            rotation
+            size, rotation
         )
 
     # Fonts
@@ -187,6 +193,9 @@ def create_preview(image_dir, output_path, short_title):
         [(PADDING * 2, 278), (PREVIEW_SIZE - PADDING * 2, 278)],
         fill=ACCENT_COLOR, width=3
     )
+
+    # Apply watermark overlay
+    canvas = apply_watermark(canvas)
 
     canvas.save(str(output_path), "PNG", optimize=True)
     print(f"  Preview saved: {output_path}")
