@@ -109,22 +109,26 @@ Respond ONLY with a JSON array of 13 strings."""
 
 def get_shop_id() -> str:
     """Return the shop ID directly."""
-    return os.environ.get("ETSY_SHOP_ID", "48022234")
+    return os.environ.get("ETSY_SHOP_ID", "TheFeelingWeShare")
 
 
-def upload_image(shop_id: str, image_path: Path) -> str:
+def upload_image(shop_id: str, listing_id: str, image_path: Path):
+    """Upload image directly to a listing."""
     headers = {
         "x-api-key": KEYSTRING,
         "Authorization": f"Bearer {ACCESS_TOKEN}",
     }
     with open(image_path, "rb") as f:
         response = requests.post(
-            f"{ETSY_API_BASE}/application/shops/{shop_id}/listing-images",
+            f"{ETSY_API_BASE}/application/shops/{shop_id}/listings/{listing_id}/images",
             headers=headers,
-            files={"image": (image_path.name, f, "image/png")}
+            files={"image": (image_path.name, f, "image/png")},
+            data={"rank": 1}
         )
-    response.raise_for_status()
-    return str(response.json()["listing_image_id"])
+    if response.status_code not in [200, 201]:
+        print(f"  Warning: Could not upload image: {response.text}")
+    else:
+        print(f"  Image uploaded successfully")
 
 
 def upload_digital_file(shop_id: str, listing_id: str, pdf_path: Path):
@@ -209,18 +213,14 @@ def main():
     shop_id = get_shop_id()
     print(f"  Shop ID: {shop_id}")
 
-    print("  Uploading preview image...")
-    image_id = upload_image(shop_id, preview_path)
-    print(f"  Image ID: {image_id}")
-
     title = f"{short_title} | {image_count} PNG Clipart | Watercolor | Transparent | Commercial Use"
 
     print("  Creating draft listing...")
     listing_id = create_listing(shop_id, title, description, tags)
     print(f"  Listing ID: {listing_id}")
 
-    attach_image_to_listing(shop_id, listing_id, image_id)
-    print("  Preview image attached")
+    print("  Uploading preview image...")
+    upload_image(shop_id, listing_id, preview_path)
 
     # Upload Thank You PDF as digital download file
     if thankyou_pdf_path.exists():
