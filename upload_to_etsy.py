@@ -175,6 +175,9 @@ def create_listing(shop_id: str, title: str, description: str, tags: list) -> st
         headers=HEADERS,
         json=payload
     )
+    if response.status_code != 200 and response.status_code != 201:
+        print(f"  Error response: {response.status_code}")
+        print(f"  Error body: {response.text}")
     response.raise_for_status()
     return str(response.json()["listing_id"])
 
