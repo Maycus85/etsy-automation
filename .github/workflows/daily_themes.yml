@@ -40,6 +40,9 @@ jobs:
           DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
         run: python create_pdf.py
 
+      - name: Create Thank You PDF
+        run: python create_thankyou_pdf.py
+
       - name: Create Preview
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
