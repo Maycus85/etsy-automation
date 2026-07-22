@@ -8,6 +8,7 @@ from pathlib import Path
 
 ETSY_API_BASE = "https://openapi.etsy.com/v3"
 KEYSTRING = os.environ["ETSY_KEYSTRING"]
+SHARED_SECRET = os.environ.get("ETSY_SHARED_SECRET", "")
 ACCESS_TOKEN = os.environ["ETSY_ACCESS_TOKEN"]
 
 HEADERS = {
