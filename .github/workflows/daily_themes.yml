@@ -53,6 +53,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ETSY_KEYSTRING: ${{ secrets.ETSY_KEYSTRING }}
           ETSY_ACCESS_TOKEN: ${{ secrets.ETSY_ACCESS_TOKEN }}
+          ETSY_SHOP_ID: ${{ secrets.ETSY_SHOP_ID }}
         run: python upload_to_etsy.py
 
       - name: Commit and push results
