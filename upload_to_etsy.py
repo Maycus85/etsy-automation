@@ -109,7 +109,7 @@ Respond ONLY with a JSON array of 13 strings."""
 
 def get_shop_id() -> str:
     """Return the shop ID directly."""
-    return os.environ.get("ETSY_SHOP_ID", "TheFeelingWeShare")
+    return os.environ.get("ETSY_SHOP_ID", "48022234")
 
 
 def upload_image(shop_id: str, listing_id: str, image_path: Path):
