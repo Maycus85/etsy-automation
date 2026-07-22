@@ -108,13 +108,20 @@ Respond ONLY with a JSON array of 13 strings."""
 
 
 def get_shop_id() -> str:
+    """Get the shop ID for the authenticated user."""
     response = requests.get(
-        f"{ETSY_API_BASE}/application/shops",
-        headers=HEADERS,
-        params={"limit": 1}
+        f"{ETSY_API_BASE}/application/users/me",
+        headers=HEADERS
     )
     response.raise_for_status()
-    return str(response.json()["results"][0]["shop_id"])
+    user_id = response.json()["user_id"]
+
+    response2 = requests.get(
+        f"{ETSY_API_BASE}/application/users/{user_id}/shops",
+        headers=HEADERS
+    )
+    response2.raise_for_status()
+    return str(response2.json()["shop_id"])
 
 
 def upload_image(shop_id: str, image_path: Path) -> str:
