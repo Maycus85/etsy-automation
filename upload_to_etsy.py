@@ -12,7 +12,7 @@ SHARED_SECRET = os.environ.get("ETSY_SHARED_SECRET", "")
 ACCESS_TOKEN = os.environ["ETSY_ACCESS_TOKEN"]
 
 HEADERS = {
-    "x-api-key": KEYSTRING,
+    "x-api-key": f"{KEYSTRING}:{SHARED_SECRET}",
     "Authorization": f"Bearer {ACCESS_TOKEN}",
     "Content-Type": "application/json"
 }
@@ -116,7 +116,7 @@ def get_shop_id() -> str:
 def upload_image(shop_id: str, listing_id: str, image_path: Path):
     """Upload image directly to a listing."""
     headers = {
-        "x-api-key": KEYSTRING,
+        "x-api-key": f"{KEYSTRING}:{SHARED_SECRET}",
         "Authorization": f"Bearer {ACCESS_TOKEN}",
     }
     with open(image_path, "rb") as f:
@@ -135,7 +135,7 @@ def upload_image(shop_id: str, listing_id: str, image_path: Path):
 def upload_digital_file(shop_id: str, listing_id: str, pdf_path: Path):
     """Upload the Thank You PDF as the digital download file."""
     headers = {
-        "x-api-key": KEYSTRING,
+        "x-api-key": f"{KEYSTRING}:{SHARED_SECRET}",
         "Authorization": f"Bearer {ACCESS_TOKEN}",
     }
     with open(pdf_path, "rb") as f:
