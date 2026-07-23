@@ -67,38 +67,35 @@ WICHTIG: Verwende KEIN Markdown. Keine **fett** oder *kursiv* Formatierung. Kein
 
 Struktur:
 
-1. WARNBLOCK (genau so kopieren):
-⚠️ Dies ist ein DIGITALES Produkt - kein physischer Artikel wird versendet.
-💬 Bei Fragen helfe ich dir gerne vor dem Kauf weiter.
-🔄 Bei Doppelkauf ist nur ein Austausch gegen andere Dateien moeglich (keine Rueckerstattung).
+1. EMOTIONALE EINLEITUNG (2-3 Saetze mit Emojis, warm und kreativ zum Thema)
 
-2. EMOTIONALE EINLEITUNG (2-3 Saetze mit Emojis, warm und kreativ zum Thema)
+2. "✨ Perfekt fuer:" mit 6-8 Anwendungsbeispielen als einfache Liste mit Bindestrichen
 
-3. "✨ Perfekt fuer:" mit 6-8 Anwendungsbeispielen als einfache Liste mit Bindestrichen
-
-4. "📦 Was du bekommst:"
+3. "📦 Was du bekommst:"
 - {image_count} PNG-Dateien mit transparentem Hintergrund
 - 300 DPI, 2000x2000 Pixel
 - Sofort-Download ueber Dropbox-Link in der PDF
 
-5. "📥 So laedt du herunter:"
+4. "📥 So laedt du herunter:"
 - Nach dem Kauf die PDF-Datei von Etsy oeffnen
 - Den Dropbox-Download-Link in der PDF anklicken
 - Dateien werden direkt auf deinen Computer heruntergeladen
 
-6. "✰✰✰✰✰ DATEIFORMAT ✰✰✰✰✰"
+5. "✰✰✰✰✰ DATEIFORMAT ✰✰✰✰✰"
 - PNG mit transparentem Hintergrund, 300 DPI
 
-7. "✰✰✰✰✰ NUTZUNGSRECHTE ✰✰✰✰✰"
+6. "✰✰✰✰✰ NUTZUNGSRECHTE ✰✰✰✰✰"
 - Persoenliche und kommerzielle Nutzung erlaubt
 - Darf NICHT unveraendert weiterverkauft werden
 - Mit KI-Unterstuetzung erstellt
 
-8. "✰✰✰✰✰ RUECKGABE ✰✰✰✰✰"
-- Keine Rueckgabe bei digitalen Produkten
-- Bei Download-Problemen gerne melden
+7. LANGER SEO-KEYWORD-BLOCK auf Deutsch - 3-4 Absaetze mit vielen Keyword-Variationen zum Thema "{theme}". Lesbar aber keyword-reich.
 
-9. LANGER SEO-KEYWORD-BLOCK auf Deutsch - 3-4 Absaetze mit vielen Keyword-Variationen zum Thema "{theme}". Lesbar aber keyword-reich.
+8. ABSCHLUSS-WARNBLOCK (genau so kopieren, ganz am Ende):
+⚠️ Dies ist ein DIGITALES Produkt - kein physischer Artikel wird versendet.
+💬 Bei Fragen helfe ich dir gerne vor dem Kauf weiter.
+🔄 Bei Doppelkauf ist nur ein Austausch gegen andere Dateien moeglich (keine Rueckerstattung).
+❌ Keine Rueckgabe bei digitalen Produkten - bei Download-Problemen gerne melden.
 
 Gesamtlaenge: 600-900 Woerter. Nur auf DEUTSCH. Kein Markdown."""
         }]
@@ -128,38 +125,35 @@ IMPORTANT: Do NOT use Markdown. No **bold** or *italic* formatting. No ## headin
 
 Structure:
 
-1. OPENING WARNING BLOCK (copy exactly):
-⚠️ This is a DIGITAL product - no physical item will be shipped.
-💬 If you are unsure, please message me and I'll be happy to help before you purchase.
-🔄 For duplicate purchases, only an exchange for other files is possible (no refunds).
+1. SHORT EMOTIONAL INTRO (2-3 sentences with emojis, warm and creative tone about the theme)
 
-2. SHORT EMOTIONAL INTRO (2-3 sentences with emojis, warm and creative tone)
+2. "✨ Perfect for:" with 6-8 use cases as simple dash list
 
-3. "✨ Perfect for:" with 6-8 use cases as simple dash list
-
-4. "📦 What's included:"
+3. "📦 What's included:"
 - {image_count} PNG files with transparent background
 - 300 DPI, 2000x2000 pixels
 - Instant digital download via Dropbox link inside PDF
 
-5. "📥 How to download:"
+4. "📥 How to download:"
 - After purchase open the PDF file from Etsy
 - Click the Dropbox download link inside the PDF
 - Files download directly to your computer
 
-6. "✰✰✰✰✰ FILE FORMAT ✰✰✰✰✰"
+5. "✰✰✰✰✰ FILE FORMAT ✰✰✰✰✰"
 - PNG with transparent background, 300 DPI
 
-7. "✰✰✰✰✰ TERMS OF USE ✰✰✰✰✰"
+6. "✰✰✰✰✰ TERMS OF USE ✰✰✰✰✰"
 - Personal and commercial use allowed
 - May NOT be resold as-is
 - Created with AI assistance
 
-8. "✰✰✰✰✰ RETURNS ✰✰✰✰✰"
-- No returns on digital products
-- Contact for download issues
+7. LONG SEO KEYWORD BLOCK - 3-4 paragraphs with many keyword variations for theme "{theme}". Readable but keyword-rich.
 
-9. LONG SEO KEYWORD BLOCK - 3-4 paragraphs with many keyword variations for theme "{theme}". Readable but keyword-rich.
+8. CLOSING WARNING BLOCK (copy exactly at the very end):
+⚠️ This is a DIGITAL product - no physical item will be shipped.
+💬 If you are unsure, please message me and I'll be happy to help before you purchase.
+🔄 For duplicate purchases, only an exchange for other files is possible (no refunds).
+❌ No returns on digital products - please contact me for any download issues.
 
 Total length: 600-900 words. English only. No Markdown."""
         }]
