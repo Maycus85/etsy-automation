@@ -17,18 +17,79 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-ORIGINAL_PRICE = 5.99
-SALE_PRICE = 2.99
+PRICE = 3.49
 
 
-def generate_description(theme: str, short_title: str, dropbox_url: str, image_count: int) -> str:
+def generate_description_de(theme: str, short_title: str, dropbox_url: str, image_count: int) -> str:
+    """Generate German description for the primary listing field."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     message = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=2000,
         messages=[{
             "role": "user",
-            "content": f"""Write a long, SEO-optimized Etsy product description for a watercolor clipart bundle.
+            "content": f"""Schreibe eine lange, SEO-optimierte Etsy-Produktbeschreibung auf DEUTSCH für ein Aquarell-Clipart-Bundle.
+
+Produktdetails:
+- Titel: {short_title}
+- Thema: {theme}
+- Anzahl Bilder: {image_count} PNG-Dateien
+- Stil: Aquarell-Illustration, transparenter Hintergrund
+- Aufloesung: 300 DPI, 2000x2000 Pixel
+- Download-Link: {dropbox_url}
+
+WICHTIG: Verwende KEIN Markdown. Keine **fett** oder *kursiv* Formatierung. Keine ## Ueberschriften. Nur normaler Text mit Emojis und Zeilenumbruechen.
+
+Struktur:
+
+1. WARNBLOCK (genau so kopieren):
+⚠️ Dies ist ein DIGITALES Produkt - kein physischer Artikel wird versendet.
+💬 Bei Fragen helfe ich dir gerne vor dem Kauf weiter.
+🔄 Bei Doppelkauf ist nur ein Austausch gegen andere Dateien moeglich (keine Rueckerstattung).
+
+2. EMOTIONALE EINLEITUNG (2-3 Saetze mit Emojis, warm und kreativ zum Thema)
+
+3. "✨ Perfekt fuer:" mit 6-8 Anwendungsbeispielen als einfache Liste mit Bindestrichen
+
+4. "📦 Was du bekommst:"
+- {image_count} PNG-Dateien mit transparentem Hintergrund
+- 300 DPI, 2000x2000 Pixel
+- Sofort-Download ueber Dropbox-Link in der PDF
+
+5. "📥 So laedt du herunter:"
+- Nach dem Kauf die PDF-Datei von Etsy oeffnen
+- Den Dropbox-Download-Link in der PDF anklicken
+- Dateien werden direkt auf deinen Computer heruntergeladen
+
+6. "✰✰✰✰✰ DATEIFORMAT ✰✰✰✰✰"
+- PNG mit transparentem Hintergrund, 300 DPI
+
+7. "✰✰✰✰✰ NUTZUNGSRECHTE ✰✰✰✰✰"
+- Persoenliche und kommerzielle Nutzung erlaubt
+- Darf NICHT unveraendert weiterverkauft werden
+- Mit KI-Unterstuetzung erstellt
+
+8. "✰✰✰✰✰ RUECKGABE ✰✰✰✰✰"
+- Keine Rueckgabe bei digitalen Produkten
+- Bei Download-Problemen gerne melden
+
+9. LANGER SEO-KEYWORD-BLOCK auf Deutsch - 3-4 Absaetze mit vielen Keyword-Variationen zum Thema "{theme}". Lesbar aber keyword-reich.
+
+Gesamtlaenge: 600-900 Woerter. Nur auf DEUTSCH. Kein Markdown."""
+        }]
+    )
+    return message.content[0].text.strip()
+
+
+def generate_description_en(theme: str, short_title: str, dropbox_url: str, image_count: int) -> str:
+    """Generate English description for the secondary language field."""
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=2000,
+        messages=[{
+            "role": "user",
+            "content": f"""Write a long, SEO-optimized Etsy product description in ENGLISH for a watercolor clipart bundle.
 
 Product details:
 - Title: {short_title}
@@ -38,16 +99,18 @@ Product details:
 - Resolution: 300 DPI, 2000x2000 pixels
 - Download link: {dropbox_url}
 
-Follow this exact structure:
+IMPORTANT: Do NOT use Markdown. No **bold** or *italic* formatting. No ## headings. Plain text only with emojis and line breaks.
+
+Structure:
 
 1. OPENING WARNING BLOCK (copy exactly):
-⚠️ This is a DIGITAL product — no physical item will be shipped.
+⚠️ This is a DIGITAL product - no physical item will be shipped.
 💬 If you are unsure, please message me and I'll be happy to help before you purchase.
 🔄 For duplicate purchases, only an exchange for other files is possible (no refunds).
 
-2. SHORT EMOTIONAL INTRO (2-3 sentences with emojis, warm and creative tone about the theme)
+2. SHORT EMOTIONAL INTRO (2-3 sentences with emojis, warm and creative tone)
 
-3. "✨ Perfect for:" with 6-8 creative use cases as bullet points
+3. "✨ Perfect for:" with 6-8 use cases as simple dash list
 
 4. "📦 What's included:"
 - {image_count} PNG files with transparent background
@@ -56,25 +119,24 @@ Follow this exact structure:
 
 5. "📥 How to download:"
 - After purchase open the PDF file from Etsy
-- Click the download link inside the PDF
-- Files will download directly to your computer
+- Click the Dropbox download link inside the PDF
+- Files download directly to your computer
 
 6. "✰✰✰✰✰ FILE FORMAT ✰✰✰✰✰"
 - PNG with transparent background, 300 DPI
 
 7. "✰✰✰✰✰ TERMS OF USE ✰✰✰✰✰"
 - Personal and commercial use allowed
-- May NOT resell designs as-is
+- May NOT be resold as-is
 - Created with AI assistance
 
 8. "✰✰✰✰✰ RETURNS ✰✰✰✰✰"
 - No returns on digital products
 - Contact for download issues
 
-9. LONG SEO KEYWORD BLOCK - Write 3-4 paragraphs repeating theme keywords in many variations.
-Use theme: "{theme}" as basis. Make it readable but keyword-rich.
+9. LONG SEO KEYWORD BLOCK - 3-4 paragraphs with many keyword variations for theme "{theme}". Readable but keyword-rich.
 
-Total length: 600-900 words. Write in English."""
+Total length: 600-900 words. English only. No Markdown."""
         }]
     )
     return message.content[0].text.strip()
@@ -109,12 +171,10 @@ Respond ONLY with a JSON array of 13 strings."""
 
 
 def get_shop_id() -> str:
-    """Return the shop ID directly."""
     return os.environ.get("ETSY_SHOP_ID", "48022234")
 
 
 def upload_image(shop_id: str, listing_id: str, image_path: Path):
-    """Upload image directly to a listing."""
     headers = {
         "x-api-key": f"{KEYSTRING}:{SHARED_SECRET}",
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -133,7 +193,6 @@ def upload_image(shop_id: str, listing_id: str, image_path: Path):
 
 
 def upload_digital_file(shop_id: str, listing_id: str, pdf_path: Path):
-    """Upload the Thank You PDF as the digital download file."""
     headers = {
         "x-api-key": f"{KEYSTRING}:{SHARED_SECRET}",
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -151,12 +210,29 @@ def upload_digital_file(shop_id: str, listing_id: str, pdf_path: Path):
         print(f"  Digital file uploaded: {pdf_path.name}")
 
 
+def add_german_translation(shop_id: str, listing_id: str, title: str, description_de: str):
+    """Add German translation to the listing."""
+    payload = {
+        "title": title,
+        "description": description_de,
+    }
+    response = requests.post(
+        f"{ETSY_API_BASE}/application/shops/{shop_id}/listings/{listing_id}/translations/de",
+        headers=HEADERS,
+        json=payload
+    )
+    if response.status_code not in [200, 201]:
+        print(f"  Warning: Could not add German translation: {response.text}")
+    else:
+        print(f"  German translation added")
+
+
 def create_listing(shop_id: str, title: str, description: str, tags: list) -> str:
     payload = {
         "quantity": 999,
         "title": title[:140],
         "description": description,
-        "price": ORIGINAL_PRICE,
+        "price": PRICE,
         "who_made": "i_did",
         "when_made": "made_to_order",
         "taxonomy_id": 2078,
@@ -175,19 +251,10 @@ def create_listing(shop_id: str, title: str, description: str, tags: list) -> st
         headers=HEADERS,
         json=payload
     )
-    if response.status_code != 200 and response.status_code != 201:
-        print(f"  Error response: {response.status_code}")
-        print(f"  Error body: {response.text}")
+    if response.status_code not in [200, 201]:
+        print(f"  Error: {response.status_code} - {response.text}")
     response.raise_for_status()
     return str(response.json()["listing_id"])
-
-
-def attach_image_to_listing(shop_id: str, listing_id: str, image_id: str):
-    response = requests.post(
-        f"{ETSY_API_BASE}/application/shops/{shop_id}/listings/{listing_id}/images/{image_id}",
-        headers=HEADERS
-    )
-    response.raise_for_status()
 
 
 def main():
@@ -205,9 +272,13 @@ def main():
 
     print(f"Uploading listing: {short_title}")
 
-    print("  Generating SEO description...")
-    description = generate_description(theme, short_title, dropbox_url, image_count)
-    print(f"  Description: {len(description)} characters")
+    print("  Generating English description...")
+    description_en = generate_description_en(theme, short_title, dropbox_url, image_count)
+    print(f"  English description: {len(description_en)} characters")
+
+    print("  Generating German description...")
+    description_de = generate_description_de(theme, short_title, dropbox_url, image_count)
+    print(f"  German description: {len(description_de)} characters")
 
     print("  Generating tags...")
     tags = generate_tags(theme, short_title)
@@ -220,31 +291,30 @@ def main():
     title = f"{short_title} | {image_count} PNG Clipart | Watercolor | Transparent | Commercial Use"
 
     print("  Creating draft listing...")
-    listing_id = create_listing(shop_id, title, description, tags)
+    listing_id = create_listing(shop_id, title, description_en, tags)
     print(f"  Listing ID: {listing_id}")
 
     print("  Uploading preview image...")
     upload_image(shop_id, listing_id, preview_path)
 
-    # Upload Thank You PDF as digital download file
+    print("  Adding German translation...")
+    add_german_translation(shop_id, listing_id, title, description_de)
+
     if thankyou_pdf_path.exists():
         print("  Uploading Thank You PDF...")
         upload_digital_file(shop_id, listing_id, thankyou_pdf_path)
     else:
-        print("  No Thank You PDF found, skipping digital file upload")
+        print("  No Thank You PDF found, skipping")
 
-    # Save result
     listing["etsy_listing_id"] = listing_id
     listing["etsy_title"] = title
-    listing["etsy_original_price"] = ORIGINAL_PRICE
-    listing["etsy_sale_price"] = SALE_PRICE
+    listing["etsy_price"] = PRICE
     listing["etsy_tags"] = tags
     with open("listing_today.json", "w") as f:
         json.dump(listing, f, indent=2, ensure_ascii=False)
 
     print(f"\nDone! Draft listing: https://www.etsy.com/your/shops/me/tools/listings/{listing_id}")
-    print(f"Original price: {ORIGINAL_PRICE} EUR, Sale price: {SALE_PRICE} EUR")
-    print("Note: Activate the sale manually in Etsy Shop Manager under 'Sales & Discounts'")
+    print(f"Price: {PRICE} EUR")
 
 
 if __name__ == "__main__":
