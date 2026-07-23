@@ -63,6 +63,9 @@ jobs:
           ETSY_SHOP_ID: ${{ secrets.ETSY_SHOP_ID }}
         run: python upload_to_etsy.py
 
+      - name: Cleanup images
+        run: python cleanup.py
+
       - name: Commit and push results
         run: |
           git config user.name "etsy-bot"
