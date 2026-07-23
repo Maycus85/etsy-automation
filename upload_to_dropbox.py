@@ -13,33 +13,24 @@ def get_dropbox_client():
     )
 
 
-def upload_pngs_to_dropbox(image_dir: Path, dropbox_folder: str) -> str:
-    """Upload all PNGs to a Dropbox folder and return shared folder link."""
-    dbx = get_dropbox_client()
+def upload_file(dbx, local_path: Path, dropbox_path: str):
+    """Upload a single file to Dropbox."""
+    with open(local_path, "rb") as f:
+        dbx.files_upload(
+            f.read(),
+            dropbox_path,
+            mode=dropbox.files.WriteMode.overwrite
+        )
 
-    images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
-    print(f"  Uploading {len(images)} PNG files to Dropbox...")
 
-    for i, img_path in enumerate(images):
-        dropbox_path = f"{dropbox_folder}/{i+1:02d}.png"
-        with open(img_path, "rb") as f:
-            dbx.files_upload(
-                f.read(),
-                dropbox_path,
-                mode=dropbox.files.WriteMode.overwrite
-            )
-        print(f"  [{i+1}/{len(images)}] Uploaded: {img_path.name}")
-
-    # Create shared link for the folder
+def get_shared_link(dbx, dropbox_path: str) -> str:
+    """Get or create shared link for a Dropbox path."""
     try:
-        link = dbx.sharing_create_shared_link_with_settings(dropbox_folder)
-        url = link.url
+        link = dbx.sharing_create_shared_link_with_settings(dropbox_path)
+        return link.url
     except dropbox.exceptions.ApiError:
-        links = dbx.sharing_list_shared_links(dropbox_folder).links
-        url = links[0].url
-
-    print(f"  Dropbox folder link: {url}")
-    return url
+        links = dbx.sharing_list_shared_links(dropbox_path).links
+        return links[0].url
 
 
 def main():
@@ -57,11 +48,29 @@ def main():
         return
 
     images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
+    preview_path = image_dir / "preview.png"
+
     print(f"Found {len(images)} images for theme: {theme}")
 
-    # Upload PNGs to Dropbox folder
+    dbx = get_dropbox_client()
     dropbox_folder = f"/etsy-automation/{today}/{safe_name}"
-    download_url = upload_pngs_to_dropbox(image_dir, dropbox_folder)
+
+    # Upload numbered PNGs
+    print(f"  Uploading {len(images)} PNG files...")
+    for i, img_path in enumerate(images):
+        dropbox_path = f"{dropbox_folder}/{i+1:02d}.png"
+        upload_file(dbx, img_path, dropbox_path)
+        print(f"  [{i+1}/{len(images)}] Uploaded: {img_path.name}")
+
+    # Upload preview image to Dropbox folder as well
+    if preview_path.exists():
+        print(f"  Uploading preview image...")
+        upload_file(dbx, preview_path, f"{dropbox_folder}/preview.png")
+        print(f"  Preview uploaded to Dropbox")
+
+    # Get shared folder link
+    download_url = get_shared_link(dbx, dropbox_folder)
+    print(f"  Dropbox folder link: {download_url}")
 
     # Save result
     result = {
@@ -76,7 +85,7 @@ def main():
     with open("listing_today.json", "w") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
 
-    print(f"\nDone. {len(images)} PNGs uploaded to Dropbox.")
+    print(f"\nDone. {len(images)} PNGs + preview uploaded to Dropbox.")
     print(f"Folder link: {download_url}")
 
 

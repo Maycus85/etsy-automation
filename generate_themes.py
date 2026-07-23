@@ -9,16 +9,29 @@ with open("themes.json", "r") as f:
 
 seed_themes = data["seed_themes"]
 always_clean = data.get("always_clean_themes", [])
-silhouette_themes = data.get("silhouette_themes", [])
 history = data.get("generated_history", [])
 runs_since_kawaii = data.get("runs_since_kawaii", 5)
 runs_since_silhouette = data.get("runs_since_silhouette", 9)
 
+# Determine current season
+month = date.today().month
+if month in [12, 1, 2]:
+    season = "winter"
+    season_hint = "Winter and Christmas themes are very welcome. Avoid summer, tropical, or spring themes."
+elif month in [3, 4, 5]:
+    season = "spring"
+    season_hint = "Spring, Easter, and flower themes are very welcome. Avoid Christmas or winter themes."
+elif month in [6, 7, 8]:
+    season = "summer"
+    season_hint = "Summer, beach, tropical, and garden themes are very welcome. Avoid Christmas or winter themes."
+else:
+    season = "autumn"
+    season_hint = "Autumn, Halloween, harvest, and cozy themes are very welcome. Avoid summer or spring themes."
+
 # Determine theme type for today
-# Priority: Silhouette (every 10th) > Kawaii (every 6th) > Clean Watercolor
 if runs_since_silhouette >= 9:
     theme_type = "silhouette"
-    theme_type_instruction = """Today generate a SILHOUETTE theme.
+    theme_type_instruction = f"""Today generate a SILHOUETTE theme.
 
 These are special black silhouette cliparts, perfect for Halloween, gothic, and dark fantasy themes.
 The style is pure black flat shapes on transparent background.
@@ -29,10 +42,7 @@ ONLY use these categories for silhouettes:
 - Gothic: ravens, skulls, candles, gravestones
 - Night sky: moons, stars, owls
 
-Good examples:
-- "Halloween silhouette pumpkins bats and haunted houses"
-- "gothic dragon silhouettes night sky"
-- "Halloween witch and ghost silhouettes"
+Season note: {season_hint}
 
 Keep it dark, spooky, or gothic. NO cute animals, NO food, NO flowers."""
     runs_since_silhouette = 0
@@ -40,7 +50,7 @@ Keep it dark, spooky, or gothic. NO cute animals, NO food, NO flowers."""
 
 elif runs_since_kawaii >= 5:
     theme_type = "kawaii"
-    theme_type_instruction = """Today generate a KAWAII CHARACTER theme.
+    theme_type_instruction = f"""Today generate a KAWAII CHARACTER theme.
 
 IMPORTANT: The main subjects MUST be living creatures like animals, fantasy beings, or characters.
 ALL 20 images in this pack will have cute faces - so the theme must support this consistently.
@@ -49,17 +59,18 @@ Good examples:
 - "kawaii watercolor cats dressed as wizards"
 - "watercolor puppies sleeping in flower pots"
 - "kawaii forest animals having a picnic"
-- "watercolor baby dragons in teacups"
 - "kawaii bunnies baking cupcakes"
 
-Do NOT use objects as the main subject (no kawaii kitchen tools, kawaii fruit etc).
+Season note: {season_hint}
+
+Do NOT use objects as the main subject.
 Animals, fantasy creatures, or characters MUST be the PRIMARY subject."""
     runs_since_kawaii = 0
     runs_since_silhouette += 1
 
 else:
     theme_type = "clean"
-    theme_type_instruction = """Today generate a CLEAN WATERCOLOR theme.
+    theme_type_instruction = f"""Today generate a CLEAN WATERCOLOR theme.
 
 IMPORTANT: The main subjects MUST be objects, food, plants, or items - NOT animals or characters.
 ALL 20 images will have NO faces - pure watercolor illustration style.
@@ -71,18 +82,22 @@ Good examples:
 - "watercolor cozy autumn home decor"
 - "watercolor bakery pastries and breads"
 
+Season note: {season_hint}
+
 Do NOT use animals or characters as the main subject.
 Objects, food, plants, or decor MUST be the PRIMARY subject."""
     runs_since_kawaii += 1
     runs_since_silhouette += 1
 
 # Build context
-recent_text = "\n".join(f"- {t}" for t in history) if history else "None yet."
+recent_text = "\n".join(f"- {t}" for t in history[-30:]) if history else "None yet."
 seed_text = "\n".join(f"- {t}" for t in seed_themes)
 
 prompt = f"""You are a creative director for an Etsy shop selling watercolor and silhouette clipart PNG bundles.
 
 Your task: Generate exactly 1 theme idea for today's clipart bundle.
+
+Current season: {season.upper()}
 
 {theme_type_instruction}
 
@@ -97,6 +112,7 @@ Rules:
 - Be creative and specific
 - Specific enough to generate 20 distinct clipart images
 - Keep it under 15 words
+- Match the current season where possible
 
 Respond ONLY with a single plain string. No JSON, no list, no explanation. Just the theme."""
 
@@ -113,7 +129,7 @@ message = client.messages.create(
 
 # Parse response
 today_theme = message.content[0].text.strip().strip('"').strip("'")
-print(f"Today's theme ({theme_type}): {today_theme}")
+print(f"Today's theme ({theme_type}, {season}): {today_theme}")
 
 # Update history and counters
 today = str(date.today())
@@ -131,7 +147,8 @@ with open("themes.json", "w") as f:
 today_output = {
     "date": today,
     "theme": today_theme,
-    "theme_type": theme_type
+    "theme_type": theme_type,
+    "season": season
 }
 
 with open("themes_today.json", "w") as f:
