@@ -33,6 +33,11 @@ jobs:
           FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
         run: python generate_images.py
 
+      - name: Quality check
+        env:
+          FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
+        run: python quality_check.py
+
       - name: Upload PNGs to Dropbox
         env:
           DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
