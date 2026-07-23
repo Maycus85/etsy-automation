@@ -15,48 +15,89 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-MIN_FILE_SIZE_KB = 50   # Minimum file size in KB
-MAX_WHITE_RATIO = 0.97  # Max ratio of white pixels (if more = likely empty/broken)
+MIN_FILE_SIZE_KB = 50
 MAX_RETRIES = 2
+WHITE_BORDER_THRESHOLD = 0.30  # If more than 30% of border pixels are white, background is white
+
+
+def has_white_background(img_path: Path) -> bool:
+    """Check if image has a white background by sampling border pixels."""
+    try:
+        img = Image.open(img_path).convert("RGBA")
+        arr = np.array(img)
+        h, w = arr.shape[:2]
+
+        # Sample border pixels (top, bottom, left, right rows)
+        border_pixels = np.concatenate([
+            arr[0, :, :],      # top row
+            arr[-1, :, :],     # bottom row
+            arr[:, 0, :],      # left column
+            arr[:, -1, :],     # right column
+        ])
+
+        r, g, b, a = border_pixels[:,0], border_pixels[:,1], border_pixels[:,2], border_pixels[:,3]
+
+        # White pixels: high RGB and not transparent
+        white = np.sum((r > 230) & (g > 230) & (b > 230) & (a > 200))
+        total_border = len(border_pixels)
+        white_ratio = white / total_border
+
+        return white_ratio > WHITE_BORDER_THRESHOLD, white_ratio
+
+    except Exception as e:
+        return False, 0.0
+
+
+def remove_background_rembg(img_path: Path) -> bool:
+    """Remove background using rembg."""
+    try:
+        from rembg import remove
+        with open(img_path, "rb") as f:
+            input_data = f.read()
+        output_data = remove(input_data)
+        img_path.write_bytes(output_data)
+        print(f"    Background removed with rembg")
+        return True
+    except Exception as e:
+        print(f"    rembg failed: {e}")
+        return False
 
 
 def is_image_valid(img_path: Path) -> tuple:
-    """Check if image is valid and has actual content."""
-    
+    """Check if image is valid, has content, and has transparent background."""
+
     # Check file size
     size_kb = img_path.stat().st_size / 1024
     if size_kb < MIN_FILE_SIZE_KB:
-        return False, f"File too small ({size_kb:.0f}KB < {MIN_FILE_SIZE_KB}KB)"
+        return False, f"File too small ({size_kb:.0f}KB)"
 
-    # Check pixel content
     try:
         img = Image.open(img_path).convert("RGBA")
         arr = np.array(img)
 
-        # Count near-white pixels (background)
         r, g, b, a = arr[:,:,0], arr[:,:,1], arr[:,:,2], arr[:,:,3]
-        
-        # Transparent pixels
-        transparent = np.sum(a < 10)
         total = arr.shape[0] * arr.shape[1]
-        
-        # Near-white pixels (background)
-        white = np.sum((r > 240) & (g > 240) & (b > 240))
-        
-        # Content pixels (not white and not transparent)
+
+        transparent = np.sum(a < 10)
+        white = np.sum((r > 240) & (g > 240) & (b > 240) & (a > 200))
         content = total - transparent - white
         content_ratio = content / total
 
         if content_ratio < 0.03:
-            return False, f"Not enough content ({content_ratio:.1%} content pixels)"
+            return False, f"Not enough content ({content_ratio:.1%})"
+
+        # Check for white background
+        has_white_bg, white_ratio = has_white_background(img_path)
+        if has_white_bg:
+            return False, f"White background detected ({white_ratio:.0%} white border pixels)"
 
         return True, f"OK ({size_kb:.0f}KB, {content_ratio:.1%} content)"
 
     except Exception as e:
-        return False, f"Error reading image: {e}"
+        return False, f"Error: {e}"
 
 
-def regenerate_image(prompt: str, output_path: Path, style_suffix: str) -> bool:
+def regenerate_image(prompt: str, output_path: Path) -> bool:
     """Regenerate a single image."""
     try:
         response = requests.post(
@@ -98,63 +139,73 @@ def main():
         print(f"Image directory not found: {image_dir}")
         return
 
-    # Style suffix based on theme type
     if theme_type == "kawaii":
-        style_suffix = ", kawaii chibi style, cute friendly face, soft pastel watercolor, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
+        style_suffix = ", kawaii chibi style, cute friendly face, soft pastel watercolor, gentle brushstrokes, pure transparent background, no white background, no shadows, no text, no frame, professional clipart, commercial use"
     else:
-        style_suffix = ", watercolor illustration style, no faces, no eyes, no expressions, soft pastel colors, delicate brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
+        style_suffix = ", watercolor illustration style, no faces, soft pastel colors, delicate brushstrokes, pure transparent background, no white background, no shadows, no text, no frame, professional clipart, commercial use"
 
     images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
-    print(f"Quality checking {len(images)} images for theme: {theme}")
-
-    failed = []
-    for i, img_path in enumerate(images):
-        valid, reason = is_image_valid(img_path)
-        status = "✓" if valid else "✗"
-        print(f"  [{i+1}/{len(images)}] {status} {img_path.name}: {reason}")
-        if not valid:
-            failed.append(img_path)
-
-    if not failed:
-        print(f"\nAll {len(images)} images passed quality check!")
-        return
-
-    print(f"\n{len(failed)} images failed. Regenerating...")
+    print(f"Quality checking {len(images)} images...")
 
     # Load item prompts from log
     log_path = image_dir / "log.json"
+    items = []
     if log_path.exists():
         with open(log_path) as f:
             log = json.load(f)
         items = log.get("items", [])
-    else:
-        items = []
 
-    for img_path in failed:
-        idx = int(img_path.stem) - 1
-        if idx < len(items):
-            item = items[idx]
-            prompt = f"A single illustration of {item}{style_suffix}"
-        else:
-            prompt = f"A single watercolor illustration{style_suffix}"
+    failed_bg = []
+    failed_content = []
 
-        success = False
-        for attempt in range(MAX_RETRIES):
-            print(f"  Regenerating {img_path.name} (attempt {attempt+1}/{MAX_RETRIES})...")
-            success = regenerate_image(prompt, img_path, style_suffix)
+    for i, img_path in enumerate(images):
+        valid, reason = is_image_valid(img_path)
+        status = "✓" if valid else "✗"
+        print(f"  [{i+1}/{len(images)}] {status} {img_path.name}: {reason}")
+
+        if not valid:
+            if "White background" in reason:
+                failed_bg.append((i, img_path))
+            else:
+                failed_content.append((i, img_path))
+
+    # Fix white backgrounds with rembg first
+    if failed_bg:
+        print(f"\nFixing {len(failed_bg)} images with white background using rembg...")
+        for idx, img_path in failed_bg:
+            success = remove_background_rembg(img_path)
             if success:
                 valid, reason = is_image_valid(img_path)
-                if valid:
-                    print(f"    Regeneration successful: {reason}")
-                    break
-                else:
-                    print(f"    Still invalid after regeneration: {reason}")
-            time.sleep(2)
+                if not valid:
+                    print(f"    Still invalid after rembg: {reason}, will regenerate")
+                    failed_content.append((idx, img_path))
 
-        if not success:
-            print(f"    WARNING: Could not fix {img_path.name} after {MAX_RETRIES} attempts")
+    # Regenerate content failures
+    if failed_content:
+        print(f"\nRegenerating {len(failed_content)} images...")
+        for idx, img_path in failed_content:
+            item = items[idx] if idx < len(items) else theme
+            prompt = f"A single illustration of {item}{style_suffix}"
 
-    print(f"\nQuality check complete.")
+            for attempt in range(MAX_RETRIES):
+                print(f"  Regenerating {img_path.name} (attempt {attempt+1})...")
+                success = regenerate_image(prompt, img_path)
+                if success:
+                    # Try rembg on regenerated image too
+                    remove_background_rembg(img_path)
+                    valid, reason = is_image_valid(img_path)
+                    if valid:
+                        print(f"    Fixed: {reason}")
+                        break
+                    else:
+                        print(f"    Still invalid: {reason}")
+                time.sleep(2)
+
+    total_issues = len(failed_bg) + len(failed_content)
+    if total_issues == 0:
+        print(f"\nAll {len(images)} images passed quality check!")
+    else:
+        print(f"\nQuality check complete. Processed {total_issues} issues.")
 
 
 if __name__ == "__main__":
