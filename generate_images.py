@@ -15,7 +15,7 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-TARGET_IMAGES = 1  # Set to 20 for production
+TARGET_IMAGES = 10  # Set to 20 for production
 
 # Stil A: Kawaii mit Gesichtern - für Tiere, Fantasy, Charaktere
 KAWAII_STYLE = ", kawaii chibi style, cute friendly face, soft pastel watercolor, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
