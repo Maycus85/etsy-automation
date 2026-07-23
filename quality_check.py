@@ -48,18 +48,41 @@ def has_white_background(img_path: Path) -> bool:
         return False, 0.0
 
 
-def remove_background_rembg(img_path: Path) -> bool:
-    """Remove background using rembg."""
+def remove_background_fal(img_path: Path) -> bool:
+    """Remove background using fal.ai imageutils/rembg API - free service."""
     try:
-        from rembg import remove
+        import base64
+
+        # Upload image to fal.ai storage first
         with open(img_path, "rb") as f:
-            input_data = f.read()
-        output_data = remove(input_data)
-        img_path.write_bytes(output_data)
-        print(f"    Background removed with rembg")
+            img_data = f.read()
+
+        # Upload to fal storage
+        upload_response = requests.post(
+            "https://fal.run/fal-ai/imageutils/rembg",
+            headers=HEADERS,
+            json={
+                "image_url": f"data:image/png;base64,{base64.b64encode(img_data).decode()}"
+            },
+            timeout=120
+        )
+
+        if upload_response.status_code not in [200, 201]:
+            print(f"    fal rembg failed: {upload_response.text}")
+            return False
+
+        result = upload_response.json()
+        image_url = result["image"]["url"]
+
+        # Download result
+        img_response = requests.get(image_url, timeout=60)
+        img_response.raise_for_status()
+        img_path.write_bytes(img_response.content)
+        print(f"    Background removed with fal.ai rembg")
         return True
+
     except Exception as e:
-        print(f"    rembg failed: {e}")
+        print(f"    fal rembg error: {e}")
         return False
 
 
@@ -173,7 +196,7 @@ def main():
     if failed_bg:
         print(f"\nFixing {len(failed_bg)} images with white background using rembg...")
         for idx, img_path in failed_bg:
-            success = remove_background_rembg(img_path)
+            success = remove_background_fal(img_path)
             if success:
                 valid, reason = is_image_valid(img_path)
                 if not valid:
@@ -192,7 +215,7 @@ def main():
                 success = regenerate_image(prompt, img_path)
                 if success:
                     # Try rembg on regenerated image too
-                    remove_background_rembg(img_path)
+                    remove_background_fal(img_path)
                     valid, reason = is_image_valid(img_path)
                     if valid:
                         print(f"    Fixed: {reason}")
