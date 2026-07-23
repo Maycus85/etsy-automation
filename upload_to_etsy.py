@@ -9,7 +9,32 @@ from pathlib import Path
 ETSY_API_BASE = "https://openapi.etsy.com/v3"
 KEYSTRING = os.environ["ETSY_KEYSTRING"]
 SHARED_SECRET = os.environ.get("ETSY_SHARED_SECRET", "")
-ACCESS_TOKEN = os.environ["ETSY_ACCESS_TOKEN"]
+
+
+def get_fresh_token() -> str:
+    """Get a fresh access token using the refresh token."""
+    refresh_token = os.environ.get("ETSY_REFRESH_TOKEN", "")
+    if not refresh_token:
+        return os.environ["ETSY_ACCESS_TOKEN"]
+
+    response = requests.post(
+        "https://api.etsy.com/v3/public/oauth/token",
+        data={
+            "grant_type": "refresh_token",
+            "client_id": KEYSTRING,
+            "refresh_token": refresh_token,
+        }
+    )
+    if response.status_code == 200:
+        token = response.json().get("access_token", "")
+        print(f"  Token refreshed successfully")
+        return token
+    else:
+        print(f"  Token refresh failed, using existing token: {response.text}")
+        return os.environ["ETSY_ACCESS_TOKEN"]
+
+
+ACCESS_TOKEN = get_fresh_token()
 
 HEADERS = {
     "x-api-key": f"{KEYSTRING}:{SHARED_SECRET}",
