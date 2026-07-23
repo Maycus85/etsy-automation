@@ -45,6 +45,38 @@ HEADERS = {
 PRICE = 3.49
 
 
+def generate_title(theme: str, short_title: str, image_count: int) -> str:
+    """Generate SEO-optimized Etsy listing title."""
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=100,
+        messages=[{
+            "role": "user",
+            "content": f"""Create an SEO-optimized Etsy listing title for a watercolor clipart bundle.
+
+Theme: {theme}
+Short title: {short_title}
+Image count: {image_count}
+
+Rules:
+- Start with the image count: "{image_count} PNG"
+- Then the main subject with keywords
+- Include: Clipart, Watercolor, PNG, Digital Download, Commercial Use
+- Separate sections with commas
+- Maximum 140 characters total
+- Look at these examples for style:
+  "20 PNG Sunflower Clipart Bundle, Watercolor Spring Flowers, Digital Download, Commercial Use"
+  "85 PNG Cute Kitten Clipart Bundle, Adorable Kitten Graphics, Scrapbooks, Commercial Use"
+  "10 Watercolor Violin Clipart PNG, Violin Sublimation, Clipart Pack, Digital Download"
+
+Respond ONLY with the title, nothing else."""
+        }]
+    )
+    title = message.content[0].text.strip().strip('"').strip("'")
+    return title[:140]
+
+
 def generate_description_de(theme: str, short_title: str, dropbox_url: str, image_count: int) -> str:
     """Generate German description for the primary listing field."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
@@ -307,7 +339,7 @@ def main():
     shop_id = get_shop_id()
     print(f"  Shop ID: {shop_id}")
 
-    title = f"{short_title} | {image_count} PNG Clipart | Watercolor | Transparent | Commercial Use"
+    title = generate_title(theme, short_title, image_count)
 
     print("  Creating draft listing...")
     listing_id = create_listing(shop_id, title, description_en, tags)
