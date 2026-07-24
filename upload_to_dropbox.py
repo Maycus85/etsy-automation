@@ -79,15 +79,22 @@ def main():
     download_url = get_shared_link(dbx, dropbox_folder)
     print(f"  Dropbox folder link: {download_url}")
 
-    # Save result
-    result = {
+    # Update listing_today.json - preserve existing fields
+    listing_path = Path("listing_today.json")
+    if listing_path.exists():
+        with open(listing_path, "r") as f:
+            result = json.load(f)
+    else:
+        result = {}
+
+    result.update({
         "date": today,
         "theme": theme,
         "safe_name": safe_name,
         "image_count": len(images),
         "dropbox_url": download_url,
         "dropbox_folder": dropbox_folder
-    }
+    })
 
     with open("listing_today.json", "w") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
