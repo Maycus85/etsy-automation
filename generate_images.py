@@ -15,37 +15,11 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-TARGET_IMAGES = 20  # Set to 20 for production
+TARGET_IMAGES = 20
 
-# Stil A: Kawaii mit Gesichtern - für Tiere, Fantasy, Charaktere
 KAWAII_STYLE = ", kawaii chibi style, cute friendly face, soft pastel watercolor, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
-
-# Stil B: Watercolor Clean ohne Gesichter - für Küche, Hochzeit, Blumen, Essen
 CLEAN_STYLE = ", watercolor illustration style, no faces, no eyes, no expressions, soft pastel colors, delicate brushstrokes, botanical art style, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
-
-# Stil C: Silhouette - für Halloween, Drachen, Gothic
 SILHOUETTE_STYLE = ", pure black silhouette, flat solid black shape, no details, no gradients, no colors, crisp clean edges, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
-
-# Keywords die Stil A (Kawaii mit Gesichtern) triggern
-KAWAII_KEYWORDS = [
-    "animal", "animals", "cat", "cats", "dog", "dogs", "puppy", "kitten",
-    "dragon", "dragons", "witch", "elf", "elves", "fairy", "fairies",
-    "baby", "babies", "newborn", "character", "monster", "bear", "bunny",
-    "rabbit", "fox", "deer", "owl", "bird", "penguin", "unicorn",
-    "fantasy", "kawaii", "chibi", "creature", "pet", "frog", "fish",
-    "sea animal", "woodland", "forest animal", "dinosaur", "panda"
-]
-
-
-def detect_style(theme: str) -> tuple:
-    """Detect which style to use based on theme keywords."""
-    theme_lower = theme.lower()
-    for keyword in KAWAII_KEYWORDS:
-        if keyword in theme_lower:
-            print(f"  Style: Kawaii (triggered by '{keyword}')")
-            return "kawaii", KAWAII_STYLE
-    print(f"  Style: Clean Watercolor (no character keywords found)")
-    return "clean", CLEAN_STYLE
 
 
 def build_item_prompts(theme: str, n: int, style: str) -> list:
@@ -53,6 +27,8 @@ def build_item_prompts(theme: str, n: int, style: str) -> list:
 
     if style == "kawaii":
         style_hint = "kawaii cute characters with friendly expressions"
+    elif style == "silhouette":
+        style_hint = "dark gothic silhouette shapes, no color"
     else:
         style_hint = "clean watercolor objects without faces or expressions"
 
@@ -102,7 +78,6 @@ def generate_image(prompt: str, output_path: Path) -> bool:
         image_url = data["images"][0]["url"]
         img_response = requests.get(image_url, timeout=60)
         img_response.raise_for_status()
-
         output_path.write_bytes(img_response.content)
         return True
 
@@ -161,13 +136,21 @@ def main():
     items = build_item_prompts(theme, remaining, style_name)
     print(f"Items: {items}")
 
-    # Generate images
+    # Generate images with retry logic
     print(f"Generating {remaining} images ({style_name} style)...")
     success_count = 0
     for i, item in enumerate(items):
         output_path = output_dir / f"{existing_count + i + 1:02d}.png"
         prompt = f"A single illustration of {item}{style_suffix}"
-        success = generate_image(prompt, output_path)
+
+        success = False
+        for attempt in range(3):
+            success = generate_image(prompt, output_path)
+            if success:
+                break
+            print(f"    Retry {attempt+1}/3...")
+            time.sleep(3)
+
         status = "OK" if success else "FAILED"
         print(f"  [{existing_count + i + 1}/{TARGET_IMAGES}] {status}: {item}")
         if success:
