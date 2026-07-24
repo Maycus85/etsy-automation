@@ -13,8 +13,8 @@ BG_COLOR = (255, 255, 255)
 ACCENT_COLOR = (196, 158, 120)
 FONT_COLOR = (55, 45, 40)
 SUBTITLE_COLOR = (120, 100, 88)
-TITLE_AREA = 260
-PADDING = 60
+TITLE_AREA = 320
+PADDING = 80
 
 random.seed(42)
 
@@ -205,11 +205,11 @@ def create_preview(image_dir, output_path, short_title):
 def main():
     today = str(date.today())
 
-    with open("listing_today.json", "r") as f:
+    with open("themes_today.json", "r") as f:
         listing = json.load(f)
 
     theme = listing["theme"]
-    safe_name = listing["safe_name"]
+    safe_name = theme.replace(" ", "_").replace("/", "_")[:50]
     image_dir = Path(f"images/{today}/{safe_name}")
 
     if not image_dir.exists():
