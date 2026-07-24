@@ -154,4 +154,10 @@ today_output = {
 with open("themes_today.json", "w") as f:
     json.dump(today_output, f, indent=2, ensure_ascii=False)
 
+# Reset listing_today.json for fresh run
+import os
+if os.path.exists("listing_today.json"):
+    os.remove("listing_today.json")
+    print("Reset listing_today.json for new run")
+
 print(f"Saved theme for {today}: {today_theme}")
