@@ -62,11 +62,18 @@ def main():
         upload_file(dbx, img_path, dropbox_path)
         print(f"  [{i+1}/{len(images)}] Uploaded: {img_path.name}")
 
-    # Upload preview image to Dropbox folder as well
+    # Upload preview image
     if preview_path.exists():
         print(f"  Uploading preview image...")
         upload_file(dbx, preview_path, f"{dropbox_folder}/preview.png")
         print(f"  Preview uploaded to Dropbox")
+
+    # Upload Thank You PDF
+    thankyou_path = image_dir / "thankyou.pdf"
+    if thankyou_path.exists():
+        print(f"  Uploading Thank You PDF...")
+        upload_file(dbx, thankyou_path, f"{dropbox_folder}/thankyou.pdf")
+        print(f"  Thank You PDF uploaded to Dropbox")
 
     # Get shared folder link
     download_url = get_shared_link(dbx, dropbox_folder)

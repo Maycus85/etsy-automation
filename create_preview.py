@@ -13,8 +13,8 @@ BG_COLOR = (255, 255, 255)
 ACCENT_COLOR = (196, 158, 120)
 FONT_COLOR = (55, 45, 40)
 SUBTITLE_COLOR = (120, 100, 88)
-TITLE_AREA = 320
-PADDING = 80
+TITLE_AREA = 260
+PADDING = 60
 
 random.seed(42)
 
@@ -135,7 +135,7 @@ def create_preview(image_dir, output_path, short_title):
     grid_w = PREVIEW_SIZE - PADDING * 2
     cell_w = grid_w // cols
     cell_h = grid_h // rows
-    base_size = int(min(cell_w, cell_h) * 0.75)
+    base_size = int(min(cell_w, cell_h) * 0.90)
 
     canvas = Image.new("RGB", (PREVIEW_SIZE, PREVIEW_SIZE), BG_COLOR)
     draw = ImageDraw.Draw(canvas)

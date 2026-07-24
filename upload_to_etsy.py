@@ -345,8 +345,21 @@ def main():
     listing_id = create_listing(shop_id, title, description_en, tags)
     print(f"  Listing ID: {listing_id}")
 
+    # Upload preview as main image (rank 1)
     print("  Uploading preview image...")
     upload_image(shop_id, listing_id, preview_path)
+
+    # Upload 2 sample motifs from the pack as additional images
+    safe_name = listing["safe_name"]
+    today = str(date.today())
+    image_dir = Path(f"images/{today}/{safe_name}")
+    sample_images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
+
+    if len(sample_images) >= 2:
+        print("  Uploading sample motif 1...")
+        upload_image(shop_id, listing_id, sample_images[0])
+        print("  Uploading sample motif 2...")
+        upload_image(shop_id, listing_id, sample_images[4] if len(sample_images) > 4 else sample_images[1])
 
     print("  Adding German translation...")
     add_german_translation(shop_id, listing_id, title, description_de)
