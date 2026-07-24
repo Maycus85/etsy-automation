@@ -77,7 +77,7 @@ Respond ONLY with the title, nothing else."""
     return title[:140]
 
 
-def generate_description_de(theme: str, short_title: str, dropbox_url: str, image_count: int) -> str:
+def generate_description_de(theme: str, short_title: str, dropbox_url: str, image_count: int, items_list: str = "") -> str:
     """Generate German description for the primary listing field."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     message = client.messages.create(
@@ -123,6 +123,9 @@ Struktur:
 
 7. LANGER SEO-KEYWORD-BLOCK auf Deutsch - 3-4 Absaetze mit vielen Keyword-Variationen zum Thema "{theme}". Lesbar aber keyword-reich.
 
+Dieses Bundle enthaelt diese spezifischen Elemente: {items_list}
+Verwebe diese Elementnamen natuerlich als zusaetzliche Aquarell-Keywords (z.B. "Aquarell Zitrone Clipart", "Kiwi PNG Illustration").
+
 8. ABSCHLUSS-WARNBLOCK (genau so kopieren, ganz am Ende):
 ⚠️ Dies ist ein DIGITALES Produkt - kein physischer Artikel wird versendet.
 💬 Bei Fragen helfe ich dir gerne vor dem Kauf weiter.
@@ -135,7 +138,7 @@ Gesamtlaenge: 600-900 Woerter. Nur auf DEUTSCH. Kein Markdown."""
     return message.content[0].text.strip()
 
 
-def generate_description_en(theme: str, short_title: str, dropbox_url: str, image_count: int) -> str:
+def generate_description_en(theme: str, short_title: str, dropbox_url: str, image_count: int, items_list: str = "") -> str:
     """Generate English description for the secondary language field."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     message = client.messages.create(
@@ -180,6 +183,9 @@ Structure:
 - Created with AI assistance
 
 7. LONG SEO KEYWORD BLOCK - 3-4 paragraphs with many keyword variations for theme "{theme}". Readable but keyword-rich.
+
+This bundle contains these specific elements: {items_list}
+Naturally weave these element names as additional watercolor keywords (e.g. "watercolor kiwi clipart", "lemon PNG illustration").
 
 8. CLOSING WARNING BLOCK (copy exactly at the very end):
 ⚠️ This is a DIGITAL product - no physical item will be shipped.
@@ -320,15 +326,29 @@ def main():
     image_count = listing["image_count"]
     preview_path = Path(listing["preview_path"])
     thankyou_pdf_path = Path(listing.get("thankyou_pdf_path", ""))
+    safe_name = listing["safe_name"]
+
+    # Load item list from log.json for SEO keywords
+    today = str(date.today())
+    image_dir = Path(f"images/{today}/{safe_name}")
+    log_path = image_dir / "log.json"
+    items_list = ""
+    if log_path.exists():
+        with open(log_path) as f:
+            log = json.load(f)
+        items = log.get("items", [])
+        if items:
+            items_list = ", ".join(items)
+            print(f"  Loaded {len(items)} items for SEO keywords")
 
     print(f"Uploading listing: {short_title}")
 
     print("  Generating English description...")
-    description_en = generate_description_en(theme, short_title, dropbox_url, image_count)
+    description_en = generate_description_en(theme, short_title, dropbox_url, image_count, items_list)
     print(f"  English description: {len(description_en)} characters")
 
     print("  Generating German description...")
-    description_de = generate_description_de(theme, short_title, dropbox_url, image_count)
+    description_de = generate_description_de(theme, short_title, dropbox_url, image_count, items_list)
     print(f"  German description: {len(description_de)} characters")
 
     print("  Generating tags...")
@@ -350,9 +370,6 @@ def main():
     upload_image(shop_id, listing_id, preview_path)
 
     # Upload 2 sample motifs from the pack as additional images
-    safe_name = listing["safe_name"]
-    today = str(date.today())
-    image_dir = Path(f"images/{today}/{safe_name}")
     sample_images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
 
     if len(sample_images) >= 2:
