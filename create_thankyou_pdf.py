@@ -1,11 +1,36 @@
 import json
 import os
+import dropbox as dropbox_module
 from datetime import date
 from pathlib import Path
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from PIL import Image as PILImage
+
+
+def get_dropbox_client():
+    return dropbox_module.Dropbox(
+        oauth2_refresh_token=os.environ["DROPBOX_REFRESH_TOKEN"],
+        app_key=os.environ["DROPBOX_APP_KEY"],
+        app_secret=os.environ["DROPBOX_APP_SECRET"]
+    )
+
+
+def upload_pdf_to_dropbox(pdf_path: Path, dropbox_folder: str):
+    """Upload Thank You PDF to Dropbox folder."""
+    try:
+        dbx = get_dropbox_client()
+        dropbox_path = f"{dropbox_folder}/thankyou.pdf"
+        with open(pdf_path, "rb") as f:
+            dbx.files_upload(
+                f.read(),
+                dropbox_path,
+                mode=dropbox_module.files.WriteMode.overwrite
+            )
+        print(f"  Thank You PDF uploaded to Dropbox")
+    except Exception as e:
+        print(f"  Warning: Could not upload PDF to Dropbox: {e}")
 
 
 def create_thankyou_pdf(output_path: Path, preview_path: Path, 
@@ -90,6 +115,12 @@ def main():
         listing["thankyou_pdf_path"] = str(output_path)
         with open("listing_today.json", "w") as f:
             json.dump(listing, f, indent=2, ensure_ascii=False)
+
+        # Upload PDF to Dropbox
+        dropbox_folder = listing.get("dropbox_folder", "")
+        if dropbox_folder:
+            upload_pdf_to_dropbox(output_path, dropbox_folder)
+
         print(f"\nDone. Thank You PDF: {output_path}")
 
 
