@@ -224,8 +224,11 @@ def main():
     success = create_preview(image_dir, preview_path, short_title)
 
     if success:
+        images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
         listing["preview_path"] = str(preview_path)
         listing["short_title"] = short_title
+        listing["safe_name"] = safe_name
+        listing["image_count"] = len(images)
         with open("listing_today.json", "w") as f:
             json.dump(listing, f, indent=2, ensure_ascii=False)
         print(f"\nDone. Preview created: {preview_path}")
