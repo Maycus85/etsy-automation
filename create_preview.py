@@ -79,11 +79,27 @@ def crop_white_border(img, threshold=240):
     return img.crop((cmin, rmin, cmax, rmax))
 
 
+def remove_bg_for_preview(img: Image.Image) -> Image.Image:
+    """Remove background for preview collage using rembg."""
+    try:
+        from rembg import remove
+        import io
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format="PNG")
+        output_bytes = remove(img_bytes.getvalue())
+        return Image.open(io.BytesIO(output_bytes)).convert("RGBA")
+    except Exception:
+        return img.convert("RGBA")
+
+
 def paste_image_artistic(canvas, img_path, center_x, center_y, size, rotation):
-    """Paste image with white background, crop white border, rotation."""
+    """Paste image with background removed for clean collage."""
     img = Image.open(img_path).convert("RGBA")
 
-    # Always composite onto white background
+    # Remove background for clean collage display
+    img = remove_bg_for_preview(img)
+
+    # Composite onto white background
     bg = Image.new("RGB", img.size, (255, 255, 255))
     bg.paste(img, mask=img.split()[3])
     img_rgb = bg

@@ -70,10 +70,7 @@ def is_image_valid(img_path: Path) -> tuple:
         if content_ratio < 0.03:
             return False, f"Not enough content ({content_ratio:.1%})"
 
-        has_white_bg, white_ratio = has_white_background(img_path)
-        if has_white_bg:
-            return False, f"White background ({white_ratio:.0%} white border)"
-
+        # White background is now accepted - rembg handles it in preview
         return True, f"OK ({size_kb:.0f}KB, {content_ratio:.1%} content)"
 
     except Exception as e:
@@ -81,34 +78,9 @@ def is_image_valid(img_path: Path) -> tuple:
 
 
 def remove_background_fal(img_path: Path) -> bool:
-    """Remove background using fal.ai imageutils/rembg API."""
-    try:
-        with open(img_path, "rb") as f:
-            img_data = f.read()
-
-        response = requests.post(
-            FAL_REMBG_URL,
-            headers=HEADERS,
-            json={
-                "image_url": f"data:image/png;base64,{base64.b64encode(img_data).decode()}"
-            },
-            timeout=120
-        )
-
-        if response.status_code not in [200, 201]:
-            print(f"    fal rembg failed: {response.text}")
-            return False
-
-        result = response.json()
-        image_url = result["image"]["url"]
-        img_response = requests.get(image_url, timeout=60)
-        img_response.raise_for_status()
-        img_path.write_bytes(img_response.content)
-        return True
-
-    except Exception as e:
-        print(f"    fal rembg error: {e}")
-        return False
+    """Skip background removal - handled manually via Photoshop or rembg in preview."""
+    print(f"    Skipping background removal for source files")
+    return False
 
 
 def regenerate_image(prompt: str, output_path: Path) -> bool:
