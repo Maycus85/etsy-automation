@@ -74,6 +74,7 @@ else:
 
 IMPORTANT: The main subjects MUST be objects, food, plants, or items - NOT animals or characters.
 ALL 20 images will have NO faces - pure watercolor illustration style.
+Do NOT generate themes with animals or birds like flamingos. Animals always belong to the Kawaii theme type.
 
 Good examples:
 - "watercolor kitchen utensils collection"
