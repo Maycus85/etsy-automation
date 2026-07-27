@@ -18,7 +18,7 @@ HEADERS = {
 TARGET_IMAGES = 20
 
 KAWAII_STYLE = ", kawaii chibi style, cute friendly face, soft pastel watercolor, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
-CLEAN_STYLE = ", watercolor illustration style, no faces, no eyes, no expressions, soft pastel colors, delicate brushstrokes, botanical art style, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
+CLEAN_STYLE = ", watercolor illustration style, no human faces, no expressions, soft pastel colors, delicate brushstrokes, botanical art style, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
 SILHOUETTE_STYLE = ", pure black silhouette, flat solid black shape, no details, no gradients, no colors, crisp clean edges, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
 
 
