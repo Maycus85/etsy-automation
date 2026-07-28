@@ -101,7 +101,7 @@ Every listing is created as a draft, allowing a manual review before going live.
 
 ---
 
-## Stolpersteine / Major Hurdles
+## Major Hurdles
 
 ### Etsy API
 - **App approval pending**: The Etsy developer app sat in "Pending" status for several days before being approved. No API calls are possible until approval.
