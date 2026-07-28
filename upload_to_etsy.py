@@ -93,7 +93,7 @@ Produktdetails:
 - Anzahl Bilder: {image_count} PNG-Dateien
 - Stil: Aquarell-Illustration, transparenter Hintergrund
 - Aufloesung: 300 DPI, 2000x2000 Pixel
-- Download-Link: {dropbox_url}
+- Download-Link: nach dem Kauf in der PDF-Datei verfuegbar
 
 WICHTIG: Verwende KEIN Markdown. Keine **fett** oder *kursiv* Formatierung. Keine ## Ueberschriften. Nur normaler Text mit Emojis und Zeilenumbruechen.
 
@@ -154,7 +154,7 @@ Product details:
 - Number of images: {image_count} PNG files
 - Style: Watercolor illustration, transparent background
 - Resolution: 300 DPI, 2000x2000 pixels
-- Download link: {dropbox_url}
+- Download link: available after purchase inside the PDF file
 
 IMPORTANT: Do NOT use Markdown. No **bold** or *italic* formatting. No ## headings. Plain text only with emojis and line breaks.
 
@@ -375,8 +375,9 @@ def main():
     if len(sample_images) >= 2:
         print("  Uploading sample motif 1...")
         upload_image(shop_id, listing_id, sample_images[0])
+        idx2 = min(4, len(sample_images)-1)
         print("  Uploading sample motif 2...")
-        upload_image(shop_id, listing_id, sample_images[4] if len(sample_images) > 4 else sample_images[1])
+        upload_image(shop_id, listing_id, sample_images[idx2])
 
     print("  Adding German translation...")
     add_german_translation(shop_id, listing_id, title, description_de)
