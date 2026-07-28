@@ -10,7 +10,7 @@ Digital product creation for Etsy is repetitive and time-consuming. Creating art
 
 ## Solution
 
-This pipeline automates the entire workflow end-to-end — from artwork generation to a ready-to-review Etsy draft listing — while keeping final quality control in human hands. The Etsy shop **TheFeelingsWeShare** sells digital watercolor clipart PNG bundles and editable Canva templates. What used to take several hours of manual work now takes **15–20 minutes per day** (quality check and listing activation).
+This pipeline automates the entire workflow end-to-end — from artwork generation to a ready-to-review Etsy draft listing — while keeping final quality control in human hands. The shop sells digital watercolor clipart PNG bundles and editable Canva templates. What used to take several hours of manual work now takes **15–20 minutes per day** (quality check and listing activation).
 
 ## Key Features
 
@@ -85,9 +85,9 @@ The pipeline supports three visual styles with automatic rotation:
 
 One of the most nuanced challenges was controlling whether subjects had faces or not.
 
-**Initial approach**: `no faces, no eyes, no expressions` in the Clean style prompt. This worked for objects like kitchen utensils but caused animals (flamingos, birds) to be generated without eyes — which looked broken and unprofessional.
+**Initial approach**: Suppressing facial features across the board worked for inanimate objects but caused animals to generate without eyes — which looked broken and unprofessional.
 
-**Solution**: Changed Clean style to `natural animal features allowed, no kawaii style, no chibi faces, no cartoon expressions`. This allows realistic animal eyes while preventing cartoon expressions on inanimate objects. Kawaii style retains `cute friendly face` for characters and animals that should look cute.
+**Solution**: Iterated on the prompt logic to allow natural animal features while still preventing cartoon-style expressions on inanimate objects, and kept a separate prompt profile for the Kawaii style where friendly faces are intentional.
 
 Additionally, the theme generator was updated to explicitly separate themes: Kawaii runs always generate living creatures as subjects, Clean runs always generate objects or realistic animals — never mixing styles within a pack.
 
