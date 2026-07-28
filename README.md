@@ -189,14 +189,9 @@ Every listing is created as a draft, allowing a manual review before going live.
 
 ## Role of AI Assistance
 
-This project was built collaboratively with Claude (Anthropic):
+This project was built using Claude as a pair-programming tool. I owned the product vision, architecture decisions, API strategy, and debugging — including diagnosing authentication failures, token-refresh logic across two APIs, and resolving pipeline ordering issues. Claude generated the initial code implementation based on my specifications, which I then tested, debugged, and iterated on in production.
 
-- **Human**: Product vision, market research, competitor analysis, architectural decisions, API selection, quality control decisions, style direction, debugging strategy, domain knowledge about Etsy marketplace
-- **Claude**: All Python code, GitHub Actions YAML, prompt engineering, API integration, error handling, pipeline orchestration logic
-
-Honest estimate: approximately 80% of code written by AI, 20% human orchestration, decision-making, and domain expertise.
-
-This project is itself a demonstration of what's possible when combining human product thinking with AI-assisted development — a complete production pipeline built in under a week without prior Python expertise.
+This reflects how I expect to work in a professional environment: using AI tools to accelerate implementation while owning the architecture, troubleshooting, and decisions that make a system actually work.
 
 ---
 
