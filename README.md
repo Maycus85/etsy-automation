@@ -1,14 +1,25 @@
 # Etsy Clipart Automation Pipeline
 
-A fully automated pipeline that generates watercolor clipart bundles daily, creates product listings, and uploads them to Etsy - built with GitHub Actions, Python, and multiple AI APIs.
+A fully automated pipeline that generates watercolor clipart bundles daily, creates product listings, and uploads them to Etsy — built with GitHub Actions, Python, and multiple AI APIs.
 
 ---
 
-## What This Project Does
+## Business Problem
 
-The Etsy shop **TheFeelingsWeShare** sells digital watercolor clipart PNG bundles and editable Canva templates. Without automation, creating 20 AI-generated images, building a preview collage, writing SEO-optimized product descriptions in two languages, and uploading everything to Etsy would take several hours daily.
+Digital product creation for Etsy is repetitive and time-consuming. Creating artwork, building previews, writing SEO-optimized listing content in two languages, and publishing to the marketplace manually takes several hours every day.
 
-This pipeline reduces that to **15–20 minutes of manual work per day** (quality check and listing activation).
+## Solution
+
+This pipeline automates the entire workflow end-to-end — from artwork generation to a ready-to-review Etsy draft listing — while keeping final quality control in human hands. The Etsy shop **TheFeelingsWeShare** sells digital watercolor clipart PNG bundles and editable Canva templates. What used to take several hours of manual work now takes **15–20 minutes per day** (quality check and listing activation).
+
+## Key Features
+
+- ✅ Fully automated GitHub Actions pipeline (daily cron)
+- ✅ AI-generated artwork with automated quality validation and retry logic
+- ✅ Automatic multilingual (EN/DE) Etsy listing generation
+- ✅ Dropbox integration for digital product delivery
+- ✅ Manual review gate before publication (draft listings only)
+- ✅ Self-cleaning repository (no accumulating storage)
 
 ---
 
@@ -101,12 +112,12 @@ Every listing is created as a draft, allowing a manual review before going live.
 
 ---
 
-## Major Hurdles
+## Stolpersteine / Major Hurdles
 
 ### Etsy API
 - **App approval pending**: The Etsy developer app sat in "Pending" status for several days before being approved. No API calls are possible until approval.
 - **Wrong x-api-key format**: The header requires `keystring:shared_secret` format — passing only the keystring causes 403 errors. This took multiple debugging sessions to discover.
-- **Wrong shop endpoint**: `GET /application/shops` returns 403. The correct approach is fetching the user ID first via `/application/users/me` then the shop via the user ID. Ultimately hardcoded the shop ID (48022234) for reliability.
+- **Wrong shop endpoint**: `GET /application/shops` returns 403. The correct approach is fetching the user ID first via `/application/users/me` then the shop via the user ID. Ultimately hardcoded the shop ID for reliability.
 - **Access token expiry**: Etsy access tokens expire after 3600 seconds (1 hour). Initial implementation broke every run. Solution: implemented automatic token refresh using the refresh token at the start of every upload.
 - **OAuth scopes**: Required multiple iterations to find the correct scope set: `listings_w listings_r listings_d transactions_r shops_r email_r profile_r`
 - **Shop language**: The shop was originally set to German, causing all listings to show in German by default and rank poorly internationally. Fixed by switching the shop primary language to English in Etsy settings.
@@ -144,30 +155,17 @@ Every listing is created as a draft, allowing a manual review before going live.
 
 **Total: approximately $55–60/month** for a fully automated daily listing pipeline.
 
+*Costs represent the current development setup and may vary depending on usage volume and API pricing changes.*
+
 ---
 
 ## Setup Guide
 
-### Prerequisites
-- GitHub account with a repository
-- Accounts at: Anthropic, fal.ai, Dropbox (developer), Etsy (developer)
-- Python 3.11+ for local token generation scripts
+Requires accounts at Anthropic, fal.ai, Dropbox (developer), and Etsy (developer), plus Python 3.11+ for local OAuth token generation.
 
-### One-Time Setup
-
-1. **Anthropic API Key**: Create at console.anthropic.com → API Keys
-
-2. **fal.ai API Key**: Create at fal.ai → Settings → API Keys
-
-3. **Dropbox OAuth**: Run `get_dropbox_token.py` locally to generate a refresh token (access tokens expire after 4 hours)
-
-4. **Etsy OAuth**: 
-   - Create app at etsy.com/developers
-   - Wait for approval (can take several days)
-   - Run `get_etsy_token.py` locally with scopes: `listings_w listings_r listings_d transactions_r shops_r email_r profile_r`
-   - Note: requires `keystring:shared_secret` format in x-api-key header
-
-5. **GitHub Secrets**: Add all secrets to repository Settings → Secrets and variables → Actions:
+1. Generate API keys for **Anthropic** and **fal.ai**
+2. Generate OAuth refresh tokens for **Dropbox** and **Etsy** via the included local scripts (`get_dropbox_token.py`, `get_etsy_token.py` — Etsy requires developer app approval first, and scopes `listings_w listings_r listings_d transactions_r shops_r email_r profile_r`)
+3. Add all credentials as **GitHub Secrets** (Settings → Secrets and variables → Actions):
    ```
    ANTHROPIC_API_KEY
    FAL_API_KEY
@@ -180,29 +178,36 @@ Every listing is created as a draft, allowing a manual review before going live.
    ETSY_REFRESH_TOKEN
    ETSY_SHOP_ID
    ```
-
-6. **Repository Settings**: Enable "Read and write permissions" under Settings → Actions → General → Workflow permissions
-
-7. **Watermark**: Add `watermark.png` (3000x3000px, ~25% opacity) to the repository root
+4. Enable **"Read and write permissions"** under Settings → Actions → General → Workflow permissions
+5. Add a `watermark.png` (3000×3000px, ~25% opacity) to the repository root
 
 ---
 
 ## Role of AI Assistance
 
-This project was built using Claude as a pair-programming tool. I owned the product vision, architecture decisions, API strategy, and debugging — including diagnosing authentication failures, token-refresh logic across two APIs, and resolving pipeline ordering issues. Claude generated the initial code implementation based on my specifications, which I then tested, debugged, and iterated on in production.
+This project was built using Claude as a pair-programming tool. Owned the product vision, architecture decisions, API strategy, and debugging — including diagnosing authentication failures, token-refresh logic across two APIs, and resolving pipeline ordering issues. Claude generated the initial code implementation based on these specifications, which was then tested, debugged, and iterated on in production.
 
-This reflects how I expect to work in a professional environment: using AI tools to accelerate implementation while owning the architecture, troubleshooting, and decisions that make a system actually work.
+This reflects how I expect to work in a professional environment: using AI as an engineering tool to accelerate implementation while taking full ownership of architecture, integration, troubleshooting, and the technical decisions that make systems reliable in production.
 
 ---
 
 ## Technologies Used
 
-- **Python 3.11**
-- **GitHub Actions** (CI/CD orchestration)
-- **Claude API** (theme generation, descriptions, tags, titles)
-- **fal.ai** (image generation via Nano Banana model, background removal via rembg)
-- **Dropbox API** (file storage and delivery)
-- **Etsy API v3** (listing management)
-- **Pillow / NumPy** (image processing)
-- **ReportLab** (PDF generation)
-- **rembg** (AI background removal for preview collage)
+**Language**
+- Python 3.11
+
+**Automation / CI-CD**
+- GitHub Actions (scheduling, orchestration, secrets management)
+
+**AI**
+- Claude API (theme generation, descriptions, tags, titles)
+- fal.ai (image generation via Nano Banana model, background removal via rembg)
+
+**APIs**
+- Dropbox API (file storage and delivery)
+- Etsy API v3 (listing management)
+
+**Libraries**
+- Pillow / NumPy (image processing)
+- ReportLab (PDF generation)
+- rembg (AI background removal for preview collage)
