@@ -1,4 +1,4 @@
-# Etsy Clipart Automation Pipeline
+# Marketplace Automation Pipeline
 
 A fully automated pipeline that generates watercolor clipart bundles daily, creates product listings, and uploads them to Etsy. Built with GitHub Actions, Python, and multiple AI APIs.
 
