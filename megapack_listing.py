@@ -233,7 +233,7 @@ Examples:
   "Ocean & Mermaid Mega Bundle: 150 PNG, Watercolor Sea Life, Baby Shower, Nursery, Commercial Use"
 
 Max 140 chars. Only the title."""}])
-    etsy_title = msg.content[0].text.strip()[:140]
+    etsy_title = msg.content[0].text.strip().strip('"').strip("'").strip()[:140]
     print(f"  Title: {etsy_title}")
 
     # Generate description EN
