@@ -40,20 +40,36 @@ def get_dbx():
     )
 
 
-def get_dropbox_folder_url(dropbox_folder: str) -> str:
+def get_dropbox_folder_url(dropbox_input: str) -> tuple:
+    """Accept either a Dropbox folder path or an existing share link.
+    Returns (url, folder_path_or_none)"""
+    # If it's already a Dropbox share link, use it directly
+    if dropbox_input.startswith("https://www.dropbox.com"):
+        # Convert to direct download link
+        url = dropbox_input.replace("?dl=0", "?dl=1").replace("&dl=0", "&dl=1")
+        if "dl=1" not in url:
+            url += "&dl=1" if "?" in url else "?dl=1"
+        print(f"  Using provided Dropbox share link")
+        return url, None
+
+    # Otherwise treat as folder path and create a link
     dbx = get_dbx()
     try:
-        link = dbx.sharing_create_shared_link_with_settings(dropbox_folder)
-        return link.url
+        link = dbx.sharing_create_shared_link_with_settings(dropbox_input)
+        return link.url, dropbox_input
     except dropbox_module.exceptions.ApiError:
-        links = dbx.sharing_list_shared_links(dropbox_folder).links
-        return links[0].url
+        links = dbx.sharing_list_shared_links(dropbox_input).links
+        return links[0].url, dropbox_input
 
 
-def count_pngs_in_dropbox(dropbox_folder: str) -> int:
+def count_pngs_in_dropbox(dropbox_input: str) -> int:
+    """Count PNGs - only works with folder paths, not share links."""
+    if dropbox_input.startswith("https://"):
+        print("  Note: Cannot count PNGs from share link, please provide count manually or use folder path")
+        return 0
     dbx = get_dbx()
     try:
-        result = dbx.files_list_folder(dropbox_folder)
+        result = dbx.files_list_folder(dropbox_input)
         count = sum(1 for e in result.entries
                     if isinstance(e, dropbox_module.files.FileMetadata)
                     and e.name.lower().endswith(".png"))
@@ -284,28 +300,35 @@ def upload_pdf_to_etsy(listing_id: str, pdf_path: Path, headers_file: dict):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--title", required=True, help="Mega pack title (e.g. 'Ocean and Mermaid Mega Bundle')")
-    parser.add_argument("--dropbox-folder", required=True, help="Dropbox folder path (e.g. /etsy-automation/megapacks/ocean-mermaid)")
-    parser.add_argument("--price", type=float, default=6.99, help="Listing price in EUR")
+    parser.add_argument("--title", required=True)
+    parser.add_argument("--dropbox-folder", required=True, help="Dropbox folder path OR share link")
+    parser.add_argument("--price", type=float, default=6.99)
+    parser.add_argument("--image-count", type=int, default=0, help="Manual image count if using share link")
     args = parser.parse_args()
 
     title = args.title
-    dropbox_folder = args.dropbox_folder
+    dropbox_input = args.dropbox_folder
     price = args.price
 
     work_dir = Path("/tmp/megapack")
     work_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\nMega Pack: {title}")
-    print(f"Dropbox folder: {dropbox_folder}")
 
     print("\n1. Getting Dropbox folder URL...")
-    dropbox_url = get_dropbox_folder_url(dropbox_folder)
+    dropbox_url, folder_path = get_dropbox_folder_url(dropbox_input)
     print(f"  URL: {dropbox_url}")
 
     print("\n2. Counting PNGs in Dropbox...")
-    image_count = count_pngs_in_dropbox(dropbox_folder)
-    print(f"  Found {image_count} PNG files")
+    if args.image_count > 0:
+        image_count = args.image_count
+        print(f"  Using provided count: {image_count}")
+    elif folder_path:
+        image_count = count_pngs_in_dropbox(folder_path)
+        print(f"  Found {image_count} PNG files")
+    else:
+        image_count = 0
+        print("  Could not count automatically, using 0")
 
     print("\n3. Creating simple preview (title + watermark only)...")
     preview_path = work_dir / "preview.png"
