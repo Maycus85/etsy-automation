@@ -1,4 +1,21 @@
 {
+  "priority_themes": [
+    "baby shower pink teddy bears nursery plush toys",
+    "peeking animals quirky animal faces woodland creatures",
+    "wedding flowers bouquets bridal floral elements",
+    "wildflowers botanical borders frames",
+    "autumn pumpkin cottagecore fall harvest",
+    "witch store halloween potions cauldron broom",
+    "sunflower yellow summer floral",
+    "sea life underwater ocean marine animals",
+    "school supplies pencils notebooks back to school",
+    "travel landmarks world monuments vacation",
+    "greenery borders eucalyptus frames botanical",
+    "birth month flowers floral calendar monthly",
+    "cute farm animals barnyard chickens cows",
+    "butterflies spring garden colorful wings",
+    "dark flowers gold outline moody botanical"
+  ],
   "seed_themes": [
     "watercolor babies and newborns",
     "watercolor birthday celebration",
@@ -170,4 +187,5 @@
   "last_updated": "2026-07-29",
   "runs_since_kawaii": 2,
   "runs_since_silhouette": 7
+  "priority_index": 0
 }
