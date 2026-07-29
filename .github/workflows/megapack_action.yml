@@ -13,6 +13,10 @@ on:
         description: 'Price in EUR'
         required: true
         default: '6.99'
+      image_count:
+        description: 'Number of PNG files (required when using Dropbox share link)'
+        required: false
+        default: '0'
 
 jobs:
   create-megapack-listing:
@@ -46,4 +50,5 @@ jobs:
           python megapack_listing.py \
             --title "${{ github.event.inputs.title }}" \
             --dropbox-folder "${{ github.event.inputs.dropbox_folder }}" \
-            --price "${{ github.event.inputs.price }}"
+            --price "${{ github.event.inputs.price }}" \
+            --image-count "${{ github.event.inputs.image_count }}"
