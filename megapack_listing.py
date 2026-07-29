@@ -238,22 +238,54 @@ Max 140 chars. Only the title."""}])
 
     # Generate description EN
     msg = client.messages.create(model="claude-sonnet-4-6", max_tokens=2000,
-        messages=[{"role": "user", "content": f"""SEO Etsy description English, no Markdown, for a MEGA watercolor clipart bundle.
+        messages=[{"role": "user", "content": f"""Write a long SEO-optimized Etsy description in English for a MEGA watercolor clipart bundle.
 Title: {title_input}
 Count: {image_count} PNG files
 Download link available after purchase in PDF file.
 
-Structure: Emotional intro, Perfect for list, Whats included, How to download (PDF with link), File format, Terms, Long SEO block, Closing warning. 600-900 words."""}])
+IMPORTANT: No Markdown, no bold, no headers. Plain text with emojis only.
+
+Structure:
+1. Short emotional intro (2-3 sentences with emojis like ✨🌸💕)
+2. "✨ Perfect for:" with 6-8 use cases as dash list
+3. "📦 What's included:" with image count, transparent background, 300 DPI, instant download via PDF
+4. "📥 How to download:" after purchase open PDF, click link, files download to computer
+5. "✰✰✰✰✰ FILE FORMAT ✰✰✰✰✰" PNG transparent, 300 DPI
+6. "✰✰✰✰✰ TERMS OF USE ✰✰✰✰✰" personal and commercial use, not for resale, AI assisted
+7. Long SEO keyword block for {title_input} with many variations
+8. Closing warning block:
+⚠️ This is a DIGITAL product - no physical item will be shipped.
+💬 If you are unsure, please message me before purchase.
+🔄 For duplicate purchases, only an exchange for other files is possible.
+❌ No returns on digital products - contact me for download issues.
+
+600-900 words. English only. No Markdown. Use emojis throughout."""}])
     desc_en = msg.content[0].text.strip()
 
     # Generate description DE
     msg = client.messages.create(model="claude-sonnet-4-6", max_tokens=2000,
-        messages=[{"role": "user", "content": f"""SEO Etsy Beschreibung Deutsch, kein Markdown, fuer ein MEGA Aquarell Clipart Bundle.
+        messages=[{"role": "user", "content": f"""Schreibe eine lange SEO-optimierte Etsy-Beschreibung auf Deutsch fuer ein MEGA Aquarell Clipart Bundle.
 Titel: {title_input}
 Anzahl: {image_count} PNG Dateien
 Download-Link nach dem Kauf in der PDF-Datei verfuegbar.
 
-Struktur: Emotionale Einleitung, Perfekt fuer Liste, Inhalt, Download-Anleitung, Dateiformat, Nutzungsrechte, SEO Block, Abschluss-Warnblock. 600-900 Woerter."""}])
+WICHTIG: Kein Markdown, kein Fettdruck. Nur normaler Text mit Emojis.
+
+Struktur:
+1. Kurze emotionale Einleitung (2-3 Saetze mit Emojis wie ✨🌸💕)
+2. "✨ Perfekt fuer:" mit 6-8 Anwendungsbeispielen als Strichliste
+3. "📦 Was du bekommst:" Bildanzahl, transparenter Hintergrund, 300 DPI, Sofort-Download via PDF
+4. "📥 So laedt du herunter:" nach Kauf PDF oeffnen, Link anklicken, Dateien herunterladen
+5. "✰✰✰✰✰ DATEIFORMAT ✰✰✰✰✰" PNG transparent, 300 DPI
+6. "✰✰✰✰✰ NUTZUNGSRECHTE ✰✰✰✰✰" persoenliche und kommerzielle Nutzung, kein Weiterverkauf
+7. Langer SEO-Block fuer {title_input} mit vielen Variationen
+8. Abschluss-Warnblock:
+⚠️ Dies ist ein DIGITALES Produkt - kein physischer Artikel wird versendet.
+💬 Bei Fragen bitte vor dem Kauf melden.
+🔄 Bei Doppelkauf nur Austausch gegen andere Dateien moeglich.
+❌ Keine Rueckgabe bei digitalen Produkten.
+
+600-900 Woerter. Nur Deutsch. Kein Markdown. Emojis verwenden."""}])
     desc_de = msg.content[0].text.strip()
 
     # Generate tags
