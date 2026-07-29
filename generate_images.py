@@ -15,7 +15,7 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-TARGET_IMAGES = 20
+TARGET_IMAGES = 50
 
 KAWAII_STYLE = ", kawaii chibi style, cute friendly face, soft pastel watercolor, gentle brushstrokes, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"
 CLEAN_STYLE = ", watercolor illustration style, natural animal features allowed, no kawaii style, no chibi faces, no cartoon expressions, soft pastel colors, delicate brushstrokes, botanical art style, isolated on pure white background, transparent background, no shadows, no text, no frame, professional clipart, commercial use"

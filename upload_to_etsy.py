@@ -42,7 +42,7 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-PRICE = 3.49
+PRICE = 4.49
 
 
 def generate_title(theme: str, short_title: str, image_count: int) -> str:
@@ -60,15 +60,17 @@ Short title: {short_title}
 Image count: {image_count}
 
 Rules:
-- Start with the image count: "{image_count} PNG"
-- Then the main subject with keywords
-- Include: Clipart, Watercolor, PNG, Digital Download, Commercial Use
-- Separate sections with commas
+- Follow this EXACT pattern from bestsellers: "[Subject] Clipart: [Count] [Style] PNGs, [Use Case], [Keywords], Digital Download"
+- Put the most important keyword FIRST (before "Clipart")
+- Include the count after the colon
+- Add use cases like: Baby Shower, Wedding, Nursery, Scrapbook, Commercial Use
 - Maximum 140 characters total
-- Look at these examples for style:
-  "20 PNG Sunflower Clipart Bundle, Watercolor Spring Flowers, Digital Download, Commercial Use"
-  "85 PNG Cute Kitten Clipart Bundle, Adorable Kitten Graphics, Scrapbooks, Commercial Use"
-  "10 Watercolor Violin Clipart PNG, Violin Sublimation, Clipart Pack, Digital Download"
+- Look at these bestseller examples for style:
+  "Pink Teddy Bear Watercolor Clipart: 100 Baby Shower PNGs (Digital Download)"
+  "Peeking Animals: 130 PNG, 300 DPI Quirky Animal Faces, Woodland Creatures, Nursery Kid, Commercial Use"
+  "Wedding Flowers Clipart: 150 Floral Elements, Watercolor PNG Bundle, Commercial Use"
+  "Witch Store Clipart: 150 PNG, Halloween Magical Potion Shop, Watercolor, Commercial Use"
+  "Birth Month Flowers Clipart: 130 Watercolor Floral PNG, Birthday, Digital Floral Set, Instant Download"
 
 Respond ONLY with the title, nothing else."""
         }]

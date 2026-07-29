@@ -136,12 +136,21 @@ def apply_watermark(canvas):
 
 
 def create_preview(image_dir, output_path, short_title):
-    images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
-    n = len(images)
-    if n == 0:
+    all_images = sorted([f for f in image_dir.glob("*.png") if f.name != "preview.png"])
+    n_total = len(all_images)
+    if n_total == 0:
         return False
 
-    print(f"  Creating preview with {n} images, title: {short_title}")
+    # Show max 20 images in preview, randomly selected for variety
+    PREVIEW_MAX = 20
+    if n_total > PREVIEW_MAX:
+        random.seed(42)
+        images = sorted(random.sample(all_images, PREVIEW_MAX))
+    else:
+        images = all_images
+    n = len(images)
+
+    print(f"  Creating preview with {n}/{n_total} images, title: {short_title}")
 
     cols = math.ceil(math.sqrt(n))
     rows = math.ceil(n / cols)
@@ -151,7 +160,7 @@ def create_preview(image_dir, output_path, short_title):
     grid_w = PREVIEW_SIZE - PADDING * 2
     cell_w = grid_w // cols
     cell_h = grid_h // rows
-    base_size = int(min(cell_w, cell_h) * 0.90)
+    base_size = int(min(cell_w, cell_h) * 0.97)  # 8% larger than before (was 0.90)
 
     canvas = Image.new("RGB", (PREVIEW_SIZE, PREVIEW_SIZE), BG_COLOR)
     draw = ImageDraw.Draw(canvas)
