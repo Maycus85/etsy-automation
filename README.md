@@ -1,6 +1,6 @@
 # Etsy Clipart Automation Pipeline
 
-A fully automated pipeline that generates watercolor clipart bundles daily, creates product listings, and uploads them to Etsy — built with GitHub Actions, Python, and multiple AI APIs.
+A fully automated pipeline that generates watercolor clipart bundles daily, creates product listings, and uploads them to Etsy. Built with GitHub Actions, Python, and multiple AI APIs.
 
 ---
 
@@ -10,7 +10,7 @@ Digital product creation for Etsy is repetitive and time-consuming. Creating art
 
 ## Solution
 
-This pipeline automates the entire workflow end-to-end — from artwork generation to a ready-to-review Etsy draft listing — while keeping final quality control in human hands. The shop sells digital watercolor clipart PNG bundles and editable Canva templates. What used to take several hours of manual work now takes **15–20 minutes per day** (quality check and listing activation).
+This pipeline automates the entire workflow end-to-end, from artwork generation to a ready-to-review Etsy draft listing, while keeping final quality control in human hands. The shop sells digital watercolor clipart PNG bundles and editable Canva templates. What used to take several hours of manual work now takes **15–20 minutes per day** (quality check and listing activation).
 
 ## Key Features
 
@@ -77,19 +77,19 @@ flowchart TD
 
 The pipeline supports three visual styles with automatic rotation:
 
-- **Kawaii** (every 6th run): Cute chibi characters with friendly faces — animals, fantasy creatures, characters
-- **Clean Watercolor** (default): Realistic watercolor style with natural animal features, no cartoon expressions — objects, food, plants, realistic animals like flamingos
+- **Kawaii** (every 6th run): Cute chibi characters with friendly faces: animals, fantasy creatures, characters
+- **Clean Watercolor** (default): Realistic watercolor style with natural animal features, no cartoon expressions: objects, food, plants, realistic animals like flamingos
 - **Silhouette** (every 10th run): Pure black flat shapes for Halloween and gothic themes
 
 ### Prompt Engineering: The Faces Problem
 
 One of the most nuanced challenges was controlling whether subjects had faces or not.
 
-**Initial approach**: Suppressing facial features across the board worked for inanimate objects but caused animals to generate without eyes — which looked broken and unprofessional.
+**Initial approach**: Suppressing facial features across the board worked for inanimate objects but caused animals to generate without eyes, which looked broken and unprofessional.
 
 **Solution**: Iterated on the prompt logic to allow natural animal features while still preventing cartoon-style expressions on inanimate objects, and kept a separate prompt profile for the Kawaii style where friendly faces are intentional.
 
-Additionally, the theme generator was updated to explicitly separate themes: Kawaii runs always generate living creatures as subjects, Clean runs always generate objects or realistic animals — never mixing styles within a pack.
+Additionally, the theme generator was updated to explicitly separate themes: Kawaii runs always generate living creatures as subjects, Clean runs always generate objects or realistic animals, never mixing styles within a pack.
 
 ---
 
@@ -116,7 +116,7 @@ Every listing is created as a draft, allowing a manual review before going live.
 
 ### Etsy API
 - **App approval pending**: The Etsy developer app sat in "Pending" status for several days before being approved. No API calls are possible until approval.
-- **Wrong x-api-key format**: The header requires `keystring:shared_secret` format — passing only the keystring causes 403 errors. This took multiple debugging sessions to discover.
+- **Wrong x-api-key format**: The header requires `keystring:shared_secret` format. Passing only the keystring causes 403 errors. This took multiple debugging sessions to discover.
 - **Wrong shop endpoint**: `GET /application/shops` returns 403. The correct approach is fetching the user ID first via `/application/users/me` then the shop via the user ID. Ultimately hardcoded the shop ID for reliability.
 - **Access token expiry**: Etsy access tokens expire after 3600 seconds (1 hour). Initial implementation broke every run. Solution: implemented automatic token refresh using the refresh token at the start of every upload.
 - **OAuth scopes**: Required multiple iterations to find the correct scope set: `listings_w listings_r listings_d transactions_r shops_r email_r profile_r`
@@ -164,7 +164,7 @@ Every listing is created as a draft, allowing a manual review before going live.
 Requires accounts at Anthropic, fal.ai, Dropbox (developer), and Etsy (developer), plus Python 3.11+ for local OAuth token generation.
 
 1. Generate API keys for **Anthropic** and **fal.ai**
-2. Generate OAuth refresh tokens for **Dropbox** and **Etsy** via the included local scripts (`get_dropbox_token.py`, `get_etsy_token.py` — Etsy requires developer app approval first, and scopes `listings_w listings_r listings_d transactions_r shops_r email_r profile_r`)
+2. Generate OAuth refresh tokens for **Dropbox** and **Etsy** via the included local scripts (`get_dropbox_token.py`, `get_etsy_token.py`; Etsy requires developer app approval first, and scopes `listings_w listings_r listings_d transactions_r shops_r email_r profile_r`)
 3. Add all credentials as **GitHub Secrets** (Settings → Secrets and variables → Actions):
    ```
    ANTHROPIC_API_KEY
@@ -185,7 +185,7 @@ Requires accounts at Anthropic, fal.ai, Dropbox (developer), and Etsy (developer
 
 ## Role of AI Assistance
 
-This project was built using Claude as a pair-programming tool. Owned the product vision, architecture decisions, API strategy, and debugging — including diagnosing authentication failures, token-refresh logic across two APIs, and resolving pipeline ordering issues. Claude generated the initial code implementation based on these specifications, which was then tested, debugged, and iterated on in production.
+This project was built using Claude as a pair-programming tool. Owned the product vision, architecture decisions, API strategy, and debugging, including diagnosing authentication failures, token-refresh logic across two APIs, and resolving pipeline ordering issues. Claude generated the initial code implementation based on these specifications, which was then tested, debugged, and iterated on in production.
 
 This reflects how I expect to work in a professional environment: using AI as an engineering tool to accelerate implementation while taking full ownership of architecture, integration, troubleshooting, and the technical decisions that make systems reliable in production.
 
