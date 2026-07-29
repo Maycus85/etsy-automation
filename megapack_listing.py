@@ -340,7 +340,10 @@ def main():
     create_thankyou_pdf(pdf_path, title, image_count, dropbox_url)
 
     print("\n5. Uploading Thank You PDF to Dropbox...")
-    upload_pdf_to_dropbox(pdf_path, dropbox_folder)
+    if folder_path:
+        upload_pdf_to_dropbox(pdf_path, folder_path)
+    else:
+        print("  Skipping PDF upload to Dropbox (share link provided, no folder path)")
 
     print("\n6. Creating Etsy listing...")
     listing_id, etsy_title, headers_file = create_etsy_listing(title, dropbox_url, image_count, price)
