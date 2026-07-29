@@ -272,6 +272,8 @@ Struktur: Emotionale Einleitung, Perfekt fuer Liste, Inhalt, Download-Anleitung,
                "tags": tags}
     r = requests.post(f"{ETSY_API_BASE}/application/shops/{ETSY_SHOP_ID}/listings",
                       headers=headers, json=payload)
+    if r.status_code not in [200, 201]:
+        print(f"  Error {r.status_code}: {r.text}")
     r.raise_for_status()
     listing_id = str(r.json()["listing_id"])
     print(f"  Listing created: {listing_id}")
