@@ -1,0 +1,52 @@
+name: Solo Listing Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      dropbox_folder:
+        description: 'Dropbox folder path (e.g. /etsy-automation/2026-07-30/Pink_baby_girl)'
+        required: true
+      theme:
+        description: 'Pack theme name (e.g. Pink Baby Girl Nursery Watercolor)'
+        required: true
+      images:
+        description: 'Image numbers comma-separated (e.g. 01,04,05,12,23,34,45)'
+        required: true
+      price:
+        description: 'Price per listing in EUR'
+        required: true
+        default: '0.99'
+
+jobs:
+  solo-listings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic requests Pillow dropbox
+
+      - name: Create solo listings
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
+          DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
+          ETSY_KEYSTRING: ${{ secrets.ETSY_KEYSTRING }}
+          ETSY_SHARED_SECRET: ${{ secrets.ETSY_SHARED_SECRET }}
+          ETSY_ACCESS_TOKEN: ${{ secrets.ETSY_ACCESS_TOKEN }}
+          ETSY_REFRESH_TOKEN: ${{ secrets.ETSY_REFRESH_TOKEN }}
+          ETSY_SHOP_ID: ${{ secrets.ETSY_SHOP_ID }}
+        run: |
+          python solo_listing.py \
+            --dropbox-folder "${{ github.event.inputs.dropbox_folder }}" \
+            --theme "${{ github.event.inputs.theme }}" \
+            --images "${{ github.event.inputs.images }}" \
+            --price "${{ github.event.inputs.price }}"
