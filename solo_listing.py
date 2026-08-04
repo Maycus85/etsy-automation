@@ -123,13 +123,11 @@ def analyze_image_with_claude(img_path: Path, pack_theme: str) -> dict:
 Generate the following in JSON format:
 {{
   "subject": "what is in the image in 2-4 words",
-  "title": "SEO Etsy title max 140 chars following this pattern: [Subject] Watercolor Clipart PNG, [Theme], [Use Cases], Commercial Use",
-  "description_en": "Long SEO-optimized English description, no Markdown, plain text with emojis. Structure: 1) Emotional intro 2-3 sentences with emojis, 2) Perfect for: list with 6-8 use cases, 3) What you get: 1 PNG transparent background 300 DPI instant download, 4) How to download: open digital file from Etsy, 5) File format section with star symbols, 6) Terms of use section, 7) Long SEO keyword block repeating subject and theme keywords in many variations, 8) Closing warning block with emojis. Total 500-700 words.",
-  "description_de": "Same structure but in German, same length, no Markdown, plain text with emojis.",
-  "tags": ["13 tags max 20 chars each, mix specific and broad, include: watercolor clipart, png clipart, digital download, commercial use, transparent png, instant download, and subject-specific tags"]
+  "title": "SEO Etsy title max 140 chars: [Subject] Watercolor Clipart PNG, [Theme], [Use Cases], Commercial Use",
+  "tags": ["13 tags max 20 chars each, include: watercolor clipart, png clipart, digital download, commercial use, transparent png, instant download, plus subject-specific tags"]
 }}
 
-Respond ONLY with valid JSON, no other text."""
+Respond ONLY with valid JSON. Keep all strings on one line. No newlines inside strings."""
                 }
             ]
         }]
@@ -137,7 +135,59 @@ Respond ONLY with valid JSON, no other text."""
 
     text = message.content[0].text.strip()
     text = re.sub(r"```json\s*|```\s*", "", text).strip()
-    return json.loads(text)
+    result = json.loads(text)
+
+    # Generate descriptions separately
+    client2 = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    subject = result["subject"]
+
+    desc_msg = client2.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=2000,
+        messages=[{"role": "user", "content": f"""Write a long SEO-optimized Etsy description in English for a single watercolor clipart PNG.
+
+Subject: {subject}
+Pack theme: {pack_theme}
+File: 1 PNG, transparent background, 300 DPI, instant download, commercial use
+
+No Markdown. Plain text with emojis. Structure:
+1. Emotional intro 2-3 sentences with emojis
+2. "✨ Perfect for:" 6-8 use cases as dash list
+3. "📦 What you get:" 1 PNG transparent 300 DPI instant download
+4. "📥 How to download:" open Etsy downloads, save to computer
+5. "✰✰✰✰✰ FILE FORMAT ✰✰✰✰✰"
+6. "✰✰✰✰✰ TERMS OF USE ✰✰✰✰✰"
+7. Long SEO keyword block with many variations of subject and theme
+8. Closing warning with emojis
+
+500-700 words."""}]
+    )
+    result["description_en"] = desc_msg.content[0].text.strip()
+
+    desc_de_msg = client2.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=2000,
+        messages=[{"role": "user", "content": f"""Schreibe eine lange SEO-optimierte Etsy-Beschreibung auf Deutsch fuer ein einzelnes Aquarell-Clipart PNG.
+
+Motiv: {subject}
+Pack-Thema: {pack_theme}
+Datei: 1 PNG, transparenter Hintergrund, 300 DPI, Sofort-Download, kommerzielle Nutzung
+
+Kein Markdown. Normaler Text mit Emojis. Struktur:
+1. Emotionale Einleitung 2-3 Saetze mit Emojis
+2. "✨ Perfekt fuer:" 6-8 Anwendungsbeispiele als Strichliste
+3. "📦 Was du bekommst:" 1 PNG transparent 300 DPI Sofort-Download
+4. "📥 So laedt du herunter:"
+5. "✰✰✰✰✰ DATEIFORMAT ✰✰✰✰✰"
+6. "✰✰✰✰✰ NUTZUNGSRECHTE ✰✰✰✰✰"
+7. Langer SEO-Block mit vielen Variationen
+8. Abschluss-Warnblock mit Emojis
+
+500-700 Woerter."""}]
+    )
+    result["description_de"] = desc_de_msg.content[0].text.strip()
+
+    return result
 
 
 def upload_listing_to_etsy(token: str, png_path: Path, preview_path: Path,
