@@ -104,7 +104,7 @@ def analyze_image_with_claude(img_path: Path, pack_theme: str) -> dict:
 
     message = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=1000,
+        max_tokens=3000,
         messages=[{
             "role": "user",
             "content": [
@@ -124,7 +124,8 @@ Generate the following in JSON format:
 {{
   "subject": "what is in the image in 2-4 words",
   "title": "SEO Etsy title max 140 chars following this pattern: [Subject] Watercolor Clipart PNG, [Theme], [Use Cases], Commercial Use",
-  "description": "Short 3-4 sentence description mentioning the subject, style (watercolor), transparent background, 300 DPI, commercial use, and use cases like scrapbooking, cards, invitations",
+  "description_en": "Long SEO-optimized English description, no Markdown, plain text with emojis. Structure: 1) Emotional intro 2-3 sentences with emojis, 2) Perfect for: list with 6-8 use cases, 3) What you get: 1 PNG transparent background 300 DPI instant download, 4) How to download: open digital file from Etsy, 5) File format section with star symbols, 6) Terms of use section, 7) Long SEO keyword block repeating subject and theme keywords in many variations, 8) Closing warning block with emojis. Total 500-700 words.",
+  "description_de": "Same structure but in German, same length, no Markdown, plain text with emojis.",
   "tags": ["13 tags max 20 chars each, mix specific and broad, include: watercolor clipart, png clipart, digital download, commercial use, transparent png, instant download, and subject-specific tags"]
 }}
 
@@ -140,7 +141,8 @@ Respond ONLY with valid JSON, no other text."""
 
 
 def upload_listing_to_etsy(token: str, png_path: Path, preview_path: Path,
-                            title: str, description: str, tags: list, price: float) -> str:
+                            title: str, description_en: str, description_de: str,
+                            tags: list, price: float) -> str:
     """Create Etsy listing, upload preview and digital file."""
     api_key = f"{ETSY_KEYSTRING}:{ETSY_SHARED_SECRET}"
     headers = {"x-api-key": api_key, "Authorization": f"Bearer {token}",
@@ -154,7 +156,7 @@ def upload_listing_to_etsy(token: str, png_path: Path, preview_path: Path,
     payload = {
         "quantity": 999,
         "title": title,
-        "description": description,
+        "description": description_en,
         "price": price,
         "who_made": "i_did",
         "when_made": "made_to_order",
@@ -195,6 +197,15 @@ def upload_listing_to_etsy(token: str, png_path: Path, preview_path: Path,
         )
         if r2.status_code not in [200, 201]:
             print(f"  Warning: Digital file upload failed: {r2.text}")
+
+    # German translation
+    if description_de:
+        requests.post(
+            f"{ETSY_API_BASE}/application/shops/{ETSY_SHOP_ID}/listings/{listing_id}/translations/de",
+            headers=headers,
+            json={"title": title, "description": description_de}
+        )
+        print(f"  German translation added")
 
     return listing_id
 
@@ -247,7 +258,8 @@ def main():
         try:
             content = analyze_image_with_claude(local_png, theme)
             title = content["title"]
-            description = content["description"]
+            description_en = content["description_en"]
+            description_de = content.get("description_de", "")
             tags = content["tags"]
             print(f"  Subject: {content['subject']}")
             print(f"  Title: {title[:60]}...")
@@ -260,7 +272,8 @@ def main():
         print(f"  Uploading to Etsy...")
         try:
             listing_id = upload_listing_to_etsy(
-                token, local_png, local_preview, title, description, tags, price
+                token, local_png, local_preview, title,
+                description_en, description_de, tags, price
             )
             print(f"  Created listing: {listing_id}")
             created.append({"num": num, "listing_id": listing_id, "title": title})
