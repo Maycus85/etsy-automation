@@ -78,12 +78,13 @@ def create_preview(png_path: Path, output_path: Path) -> Path:
     y = (PREVIEW_SIZE - new_h) // 2
     bg.paste(img_resized, (x, y), img_resized)
 
-    # Apply watermark
+    # Apply watermark ON TOP of everything
     wm_path = Path("watermark.png")
     if wm_path.exists():
         wm = Image.open(wm_path).convert("RGBA")
         wm = wm.resize((PREVIEW_SIZE, PREVIEW_SIZE), Image.LANCZOS)
-        result = Image.alpha_composite(bg, wm)
+        # bg has white background + clipart, wm goes on top
+        result = Image.alpha_composite(bg.convert("RGBA"), wm)
         result.convert("RGB").save(str(output_path), "PNG")
     else:
         bg.convert("RGB").save(str(output_path), "PNG")
